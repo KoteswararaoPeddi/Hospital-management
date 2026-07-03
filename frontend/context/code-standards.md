@@ -1,6 +1,6 @@
 # Code Standards
 
-Conventions for **PantryChef**. The frontend (Next.js) is the primary surface of these
+Conventions for **MediNex+**. The frontend (Next.js) is the primary surface of these
 docs; backend (NestJS) standards live in the relevant sections below and in library-docs.md.
 Follow these every session — they prevent pattern drift. See architecture.md for structure.
 
@@ -41,21 +41,22 @@ Follow these every session — they prevent pattern drift. See architecture.md f
   before using a Next.js-specific feature; heed deprecation notices (see `AGENTS.md`).
 - **Server Components by default.** Add `"use client"` only when a component needs
   `useState`/`useEffect`, browser APIs/event listeners, a Zustand store, or a client-only
-  library. Forms, the pantry table, the generator, and the meal-planner grid are client
-  boundaries. Push the boundary as low in the tree as possible.
+  library. Forms, the landing nav/tabs/accordion/pricing-toggle/demo-modal, and any data table
+  are client boundaries. Push the boundary as low in the tree as possible.
 - Never add `"use client"` to a layout unless required.
 - Pages/layouts in `src/app` stay thin — they compose feature components and hold no business
-  logic. Route groups: `(auth)` for login/signup, `(app)` for the authenticated shell.
-- Use `next/font` (Poppins), `next/image` for images, and `next/link` for navigation.
+  logic. Route groups: `(auth)` for login/signup, `(app)` for the authenticated shell; `/` is the
+  public landing page.
+- Use `next/font` (Inter + Playfair), `next/image` for images, and `next/link` for navigation.
 
 ### Folder & file architecture (frontend)
 
 - `src/app/*` — route entries only (route groups, layouts, `page.tsx`).
-- `src/features/<domain>/` — one vertical slice per domain (`auth`, `pantry`, `generator`,
-  `recipes`, `meal-planner`, `shopping-list`, `preferences`). A slice carries only the
-  folders it uses: `components/`, `api/` (services), `schemas/` (Zod), `hooks/`, `data/`
-  (static option lists only), `types/`. Nest by kebab-case folder + `index.ts` barrel as a
-  slice grows.
+- `src/features/<domain>/` — one vertical slice per domain (`landing`, `auth`, `dashboard`,
+  `settings`, and future hospital domains: `appointments`, `patients`, `pharmacy`, `lab`,
+  `billing`, `prescriptions`). A slice carries only the folders it uses: `components/`, `api/`
+  (services), `schemas/` (Zod), `hooks/`, `constants.ts`/`data/`, `stores/`, `types/`. Nest by
+  kebab-case folder + `index.ts` barrel as a slice grows.
 - **Promote on the second use.** A component used by one feature stays feature-local; promote
   it to `src/shared/components` only once a second feature needs it. `shared` never imports
   from `features`/`app`; a feature never imports another feature's internals.
@@ -327,9 +328,9 @@ Every domain folder has the same shape: `*.module.ts`, `*.controller.ts`, `*.ser
   ```
   It lands in `src/shared/components/ui/` in the project's style (`components.json`). **Do not
   re-implement a component shadcn already provides** (no hand-rolled modal/select/checkbox/dropdown).
-- **Only build by hand** when shadcn has no equivalent: feature composites (`PantryItemCard`,
-  `RecipeCard`, `AddItemDialog`) or genuinely custom widgets. Compose those from the installed
-  shadcn primitives.
+- **Only build by hand** when shadcn has no equivalent: feature composites (`SolutionCard`,
+  `PricingCard`, `AppointmentRow`, a dashboard mock) or genuinely custom widgets. Compose those from
+  the installed shadcn primitives.
 - **All text goes through `Typography`** (`@components/ui/typography`) using its `variant`/`weight`
   props — not raw `text-*` size classes in feature/page code. Colour and layout stay on
   `className`. The custom `text-*` size scale exists for the Typography component to consume.
@@ -403,8 +404,12 @@ export function RecipeView({ id }: Props) {
 ```
 
 - Prefer named exports (route entries `page.tsx`/`layout.tsx` are the only defaults).
-- No inline styles; style with Tailwind classes using the design tokens.
-- No hardcoded hex or raw Tailwind color literals — use tokens (ui-tokens.md).
+- Style with Tailwind classes using the design tokens. The **only** sanctioned inline style is a
+  decorative gradient/effect via `style={{ ... }}` using `var(--color-*)` tokens (e.g. the landing
+  hero/CTA gradients) — never a hardcoded hex.
+- No hardcoded hex or raw Tailwind color literals (incl. `text-white`/`bg-white` → use
+  `text-primary-fg`/`bg-surface`) — use tokens (ui-tokens.md).
+- **Don't write CSS files or hand-roll a component shadcn provides** (see the shadcn section below).
 
 ---
 
@@ -423,8 +428,8 @@ export function RecipeView({ id }: Props) {
   `NEXT_PUBLIC_API_URL` (the backend origin + `/api`). **Never** put a secret in a
   `NEXT_PUBLIC_` variable.
 - **Backend (`backend/.env`, never committed):** `DATABASE_URL`, `JWT_ACCESS_SECRET`,
-  `JWT_REFRESH_SECRET`, `GEMINI_API_KEY`, `CORS_ORIGIN`. The `GEMINI_API_KEY` and DB
-  credentials are backend-only and never reach the browser.
+  `JWT_REFRESH_SECRET`, the AI provider key (for prescription drafting), `CORS_ORIGIN`. The AI key
+  and DB credentials are backend-only and never reach the browser.
 - Keep a `.env.example` in each app documenting the required keys (no real values).
 
 ---
@@ -456,6 +461,6 @@ Available: `@/*`, `@app/*`, `@features/*`, `@shared/*`, `@components/*`, `@lib/*
 Don't install a package without a clear reason. First check: does shadcn/ui already provide
 the component? does Next.js/React/Nest already provide it? The stack is documented in
 architecture.md and each app's `package.json` — update the Stack table when adding a
-dependency. On the backend, prefer the official `@google/genai` SDK for Gemini; do not add
-another LLM provider.
+dependency. The backend AI provider for prescription drafting is an open decision (see
+architecture.md); confirm and document it before adding an AI SDK.
 </content>

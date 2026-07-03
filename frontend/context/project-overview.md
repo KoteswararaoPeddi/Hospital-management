@@ -2,113 +2,107 @@
 
 ## About the Project
 
-**PantryChef** is an **AI Recipe Generator** — a full-stack web app that turns the
-ingredients a user already has into cookable recipes. The user keeps a digital **pantry**,
-tells the app what they feel like eating (diet, cuisine), and the app generates complete
-recipes with **Google Gemini 2.5 Flash** — ingredients, step-by-step instructions,
-nutrition, and cooking tips. Recipes worth keeping are saved to a personal collection,
-dropped onto a weekly meal plan, and turned into a shopping list that feeds right back into
-the pantry.
+**MediNex+** is a **multi-tenant hospital management SaaS platform** that connects doctors and
+patients. Each hospital signs up as its own tenant and runs its entire operation in one place:
+appointments, patient records (EMR), doctor and staff scheduling, pharmacy and inventory, lab and
+diagnostics, billing, and finance analytics. A standout capability is **AI-assisted prescriptions**,
+where the platform drafts a complete prescription (by text or by voice) and the doctor simply
+reviews and approves.
 
 The app is split into two deployables:
 
 ```
 frontend/   → Next.js 16 (App Router) + React 19 + Tailwind v4 + shadcn/ui
-backend/    → NestJS + Prisma + PostgreSQL  (REST API, JWT auth, Google Gemini)
+backend/    → NestJS + Prisma + PostgreSQL  (REST API, JWT auth, multi-tenant)
 ```
 
-The frontend never talks to Gemini or the database directly. It calls **our own** NestJS
-API; the API owns authentication, persistence, and every AI call. The `GEMINI_API_KEY`
-lives only on the backend.
+The frontend never talks to the database or any AI provider directly. It calls **our own** NestJS
+API; the API owns authentication, tenant isolation, persistence, and every AI call. Secrets live
+only on the backend.
+
+> **Migration note:** this codebase began life as *PantryChef* (an AI recipe generator) and is being
+> repurposed into MediNex+. The recipe domain (pantry, recipes, generator, meal planner, shopping)
+> is being removed and replaced with the hospital domain. Some scaffolding (auth, the app shell,
+> shared UI primitives) is retained and rebranded.
 
 ---
 
 ## The Problem It Solves
 
-People throw food away because they don't know what to cook with it, and they reach for the
-same handful of meals because thinking up something new is work. PantryChef removes both
-frictions: it knows what's in your kitchen, respects how you eat, and produces a full recipe
-on demand. From there it closes the loop — save the good ones, plan the week, and generate
-the shopping list for whatever the pantry is missing.
+Hospitals and clinics run on a patchwork of disconnected tools, paper, and manual processes:
+appointments by phone, records in filing cabinets, prescriptions handwritten and misread, billing
+reconciled by hand across departments. MediNex+ removes that friction. It gives a hospital one
+secure system where patients book online, records are digital and access-controlled, prescriptions
+are drafted by AI and reviewed by doctors, and pharmacy, lab, and finance all reconcile together.
 
 ---
 
 ## Core User Flow
 
 ```
-Sign up / log in
+Hospital signs up (becomes a tenant)
       ↓
-Stock the pantry (ingredients, quantities, expiry dates)
+Configure hospital → add departments, doctors, staff (assign roles)
       ↓
-Set preferences (default diet + cuisine)  ──pre-fills──┐
-      ↓                                                 │
-Generate a recipe  ←─── diet & cuisine filters ─────────┘
-   (Gemini reads the pantry + filters)
+Patients book appointments (24/7 online) ──reminders──┐
+      ↓                                                │
+Doctor runs the consultation                           │
+   ├─ views patient record / history (EMR)             │
+   └─ AI drafts prescription → doctor reviews & approves
       ↓
-View the recipe (ingredients, steps, nutrition, AI tips)
+Pharmacy dispenses · Lab processes tests · results delivered
       ↓
-Save it → Recipe Collection (search / filter)
-      ↓
-Add saved recipes to the Meal Planner (Breakfast / Lunch / Dinner, by week)
-      ↓
-Build a Shopping List → check items off → add bought items back to the pantry
+Billing & payments captured → finance analytics update in real time
 ```
 
 ---
 
 ## Features In Scope
 
-1. **User Authentication** — email/password sign-up and login. Passwords hashed with
-   **bcryptjs**; sessions carried by **JWT**. Every data-bearing route is per-user.
-2. **Pantry Management** — track ingredients with quantity, unit, and expiry date.
-   **Expiry alerts** flag items nearing/past their date; **low-stock badges** flag items
-   running out.
-3. **AI Recipe Generation** — generate complete recipes from the current pantry via
-   **Google Gemini 2.5 Flash**, respecting the active diet and cuisine filters.
-4. **Dietary & Cuisine Filters** — Vegetarian, Vegan, Keto, Paleo, Gluten-Free, plus 10+
-   cuisines (Italian, Mexican, Indian, Chinese, Thai, Japanese, Mediterranean, …).
-5. **Recipe View** — ingredients, step-by-step instructions, nutrition info (calories /
-   macros), and AI-generated cooking tips.
-6. **Recipe Collection** — save recipes; search by text and filter by cuisine and
-   difficulty.
-7. **Meal Planner** — a weekly calendar with Breakfast / Lunch / Dinner slots and
-   week-to-week navigation; assign saved recipes to slots.
-8. **Shopping List** — check items off, and add a bought item straight into the pantry in
-   one click.
-9. **User Preferences** — set a default diet and cuisine that pre-fill the recipe generator.
-10. **Responsive UI** — modern, responsive design with Tailwind CSS across mobile, tablet,
-    and desktop.
+1. **Public landing page** — the marketing site at `/` (hero, solutions, AI prescription, pricing,
+   FAQ, etc.) that sells MediNex+ and routes visitors to sign up / book a demo.
+2. **Authentication & multi-tenancy** — hospital sign-up and login; every data-bearing route is
+   scoped to the authenticated user **and** their hospital (tenant).
+3. **Hospital & staff management** — departments, doctor and staff records, roles, and scheduling.
+4. **Appointments** — online booking, calendars, automated SMS/email reminders, status tracking.
+5. **Patient records (EMR)** — secure, access-controlled patient histories, vitals, and documents.
+6. **AI-assisted prescriptions** — draft a prescription from diagnosis/history (text or voice);
+   the doctor reviews and approves. AI never prescribes unilaterally.
+7. **Pharmacy & inventory** — counter sales, stock alerts, purchase orders, expiry/batch tracking,
+   billing integration.
+8. **Lab & diagnostics** — sample tracking, test report generation, result delivery, lab billing.
+9. **Billing & finance analytics** — billing queues, invoicing, revenue analytics, expense/payroll.
+10. **Responsive UI** — modern, responsive design across mobile, tablet, and desktop.
 
 ---
 
-## Features Out of Scope
+## Features Out of Scope (for now)
 
-- Payments, subscriptions, or any billing.
-- Social features (sharing, following, public recipe feeds, comments).
-- Grocery-delivery / store integrations or real-time pricing.
-- Barcode/photo ingredient scanning (the pantry is entered manually).
 - A native mobile app (the web app is responsive instead).
-- Multi-tenant / household sharing — each account is a single user's kitchen.
+- Insurance-claim clearinghouse integrations.
+- Public patient social features (forums, reviews feeds).
+- Hardware/device integrations beyond standard web inputs.
+
+> Scope grows by phase (see build-plan.md). The **current** focus is the public landing page and
+> removing the legacy recipe pages; hospital feature modules follow.
 
 ---
 
 ## Target Audience
 
-- **Home cooks** who want to cook from what they already have and waste less food.
-- **People with dietary constraints** (vegan, keto, gluten-free, …) who want recipes that
-  respect them without manual filtering.
-- **Weekly meal planners** who want generation, saving, planning, and shopping in one place.
+- **Hospitals and clinics** that want to run their whole operation on one secure platform.
+- **Doctors** who want less administrative load (online scheduling, AI-drafted prescriptions).
+- **Patients** who want effortless booking, reminders, and digital records.
+- **Hospital administrators / finance teams** who need billing, inventory, and analytics in one place.
 
 ---
 
 ## Success Criteria
 
-- A new user can sign up, stock a pantry, and generate a usable recipe in a few minutes.
-- Generation honours the active diet and cuisine filters and draws on real pantry items.
-- Expiry and low-stock signals are visible at a glance in the pantry.
-- Saved recipes are easy to find again (search + cuisine/difficulty filters).
-- The weekly planner and shopping list make the save → plan → shop loop feel effortless.
-- The UI is consistent (shared tokens and components) and responsive on every breakpoint.
-- AI failures degrade gracefully — the rest of the app keeps working when Gemini is down.
-</content>
-</invoke>
+- A hospital can sign up, configure its team, and start accepting appointments quickly.
+- Patients can book and receive reminders without friction; doctors run consultations with records
+  and AI-drafted prescriptions at hand.
+- Pharmacy, lab, and billing reconcile together; finance analytics reflect reality in real time.
+- Every tenant's data is isolated and access-controlled; no cross-tenant leakage.
+- The UI is consistent (shared tokens + shadcn primitives) and responsive on every breakpoint.
+- AI failures degrade gracefully — the rest of the platform keeps working when AI is unavailable.

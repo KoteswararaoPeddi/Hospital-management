@@ -23,7 +23,9 @@ Read in this exact order before any implementation:
 ## Rules That Never Change
 
 - Never use hardcoded hex values or raw Tailwind color classes
-- Update `progress-tracker.md` and `ui-registry.md` after every feature
+- Update `progress-tracker.md`, `build-plan.md`, and `ui-registry.md` after every feature **or
+  change** — proactively, not only when asked. In `build-plan.md`, tick the specific per-phase
+  checkboxes (not just the summary table) and leave genuine gaps unchecked / `[~]`.
 - Before any third party library — load its installed skill first,
   then read `context/library-docs.md` for project-specific rules
 - If the same problem persists after one corrective prompt —

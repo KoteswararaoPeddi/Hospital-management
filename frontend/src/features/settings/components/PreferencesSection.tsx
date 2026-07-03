@@ -11,10 +11,25 @@ import { Skeleton } from "@components/ui/skeleton"
 import { Slider } from "@components/ui/slider"
 import { Typography } from "@components/ui/typography"
 import { getErrorMessage } from "@lib/get-error-message"
-import { CUISINES, DIETS } from "@features/generator/constants"
 
 import { getPreferences, updatePreferences } from "../api/settings.service"
 import { SettingsCard } from "./SettingsCard"
+
+const CUISINES = [
+  "Any",
+  "Italian",
+  "Mexican",
+  "Indian",
+  "Chinese",
+  "Thai",
+  "Japanese",
+  "Mediterranean",
+  "American",
+  "French",
+  "Greek",
+] as const
+
+const DIETS = ["Vegetarian", "Vegan", "Gluten-Free", "Dairy-Free", "Keto", "Paleo"] as const
 
 const pill = (active: boolean) =>
   cn(

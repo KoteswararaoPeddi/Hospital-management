@@ -1,14 +1,13 @@
 # UI Tokens
 
-Design tokens for **PantryChef**, defined in `frontend/src/shared/styles/theme.css`
-(imported by `app/globals.css`). The palette is an **emerald-teal** primary on a **light
-neutral** base (white surfaces, slate text) — a clean, modern light UI. Use these exact tokens
-throughout; never hardcode hex or use raw Tailwind color classes.
+Design tokens for **MediNex+**, defined in `frontend/src/shared/styles/theme.css` (imported by
+`app/globals.css`). The palette is a **violet** primary on a **light neutral** base (white surfaces,
+slate text) — a clean, modern light healthcare UI. Use these exact tokens throughout; **never**
+hardcode hex or use raw Tailwind color classes (`bg-violet-600`, `text-gray-400`).
 
 > Source of truth: `src/shared/styles/theme.css`. If a token changes there, update this file.
-> The app is **light by default** — `:root` holds the **light** theme. A `.dark` block exists
-> as an override (not currently activated; there's no theme toggle/`next-themes` wired). The
-> resolved values in the tables below are the **light** values.
+> The app is **light by default** — `:root` holds the **light** theme. A `.dark` block exists as an
+> override (no toggle/`next-themes` wired). The resolved values below are the **light** values.
 
 ---
 
@@ -16,34 +15,34 @@ throughout; never hardcode hex or use raw Tailwind color classes.
 
 `theme.css` has layers (Tailwind v4 — no `tailwind.config.ts` for tokens):
 
-1. **`@theme` foundation** — raw palette scales and the typography scale. These generate
-   utilities like `bg-emerald-teal-500`, `text-charcoal-black-900`, `text-h2`. The foundation
-   scales present:
-   - `--color-emerald-teal-*` — **primary brand** (base `--color-emerald-teal-500: #20b286`)
-   - `--color-charcoal-black-*` — **neutral / surfaces** (base dark `--color-charcoal-black-900: #0f1418`)
-   - `--color-brand-*` (teal), `--color-neutral-*` (slate)
-   - `--color-red-*`, `--color-amber-*`, `--color-green-*`, `--color-blue-*` (feedback)
-   - `--color-surf-crest-*`, `--color-aqua-spring-*`, `--color-purple-*`, `--color-grey-*`
-     (extra foundation scales, available but not part of the semantic set)
-2. **`:root` semantic layer** — named CSS vars that point at the palette (`--primary`,
-   `--secondary`, `--background`, `--surface`, `--foreground`, `--border`, `--ring`, …) **and**
-   shadcn aliases (`--card`, `--popover`, `--muted`, `--accent`, `--destructive`,
-   `--sidebar-*`). This is the **dark** theme — its values are the dark surfaces/text below.
+1. **`@theme` foundation** — raw palette scales, the typography scale, **and the font families**.
+   These generate utilities like `bg-violet-600`, `text-neutral-900`, `text-h2`, `font-sans`,
+   `font-display`. Key foundation scales:
+   - `--color-violet-*` — **primary brand** (base `--color-violet-600: #7c3aed`). Matches the
+     landing design's `#7C3AED` family.
+   - `--color-neutral-*` — **neutral / surfaces / text** (slate; base dark `#0f172a`).
+   - `--color-red-*`, `--color-amber-*`, `--color-green-*`, `--color-blue-*` — feedback/accents.
+   - Font families: `--font-sans` → `var(--font-inter)` (base), `--font-display` →
+     `var(--font-playfair)` (the italic display accents).
+   - Legacy scales (`emerald-teal`, `charcoal-black`, `purple`, `grey`, …) remain in the file but
+     are **not** the MediNex+ semantic set — prefer the semantic tokens / violet scale.
+2. **`:root` semantic layer** — named CSS vars pointing at the palette (`--primary`, `--secondary`,
+   `--background`, `--surface`, `--foreground`, `--border`, `--ring`, …) **and** shadcn aliases
+   (`--card`, `--popover`, `--muted`, `--accent`, `--destructive`, `--sidebar-*`).
 3. **`@theme inline`** — bridges the semantic vars into Tailwind's `--color-*` namespace so
-   utilities (`bg-primary`, `text-foreground`, `border-border`, `bg-card`, …) are generated,
-   keeping them referencing the vars.
+   utilities (`bg-primary`, `text-foreground`, `border-border`, `bg-card`, …) are generated.
 
 ```tsx
 // Correct — generated utility classes
 className="bg-primary text-primary-fg"
 className="bg-card text-foreground border-border"
 
-// Correct — CSS variable directly when a utility doesn't fit
-style={{ color: "var(--primary)" }}
+// Correct — CSS variable directly when a utility doesn't fit (e.g. gradients)
+style={{ background: "linear-gradient(135deg, var(--color-violet-600), var(--color-violet-700))" }}
 
 // Never — hardcoded hex / raw Tailwind colors
-className="bg-[#20b286] text-gray-400"
-className="bg-emerald-500"
+className="bg-[#7c3aed] text-gray-400"
+className="bg-violet-600"   // raw Tailwind scale, not a project token — chrome uses semantic primary
 ```
 
 For conditional/merged classes, always use `cn` from `@lib/utils`.
@@ -56,35 +55,34 @@ The active theme is **light**. Values below are the resolved light values.
 
 | Role                 | Utility examples                                | Value (via palette)              |
 | -------------------- | ----------------------------------------------- | -------------------------------- |
-| Primary (brand)      | `bg-primary` `text-primary` `border-primary`    | emerald-teal-500 `#20b286`       |
-| Primary hover        | `bg-primary-hover`                              | emerald-teal-600 `#17936f`       |
-| Primary subtle       | `bg-primary-subtle`                             | emerald-teal-50 `#eefbf7` (light mint) |
-| On-primary text      | `text-primary-fg`                               | `#ffffff`                        |
-| Secondary            | `bg-secondary` `text-secondary`                 | neutral-100 `#f1f5f9` (text neutral-900) |
+| Primary (brand)      | `bg-primary` `text-primary` `border-primary`    | violet-600 `#7c3aed`             |
+| Primary hover        | `bg-primary-hover`                              | violet-700 `#6d28d9`             |
+| Primary subtle       | `bg-primary-subtle`                             | violet-50 `#f5f3ff`              |
+| On-primary text      | `text-primary-fg`                               | white `#ffffff`                  |
+| Secondary            | `bg-secondary` `text-secondary`                 | neutral-100 `#f1f5f9`            |
 | Danger / destructive | `bg-danger` / `bg-destructive`                  | red-600 `#dc2626`                |
 | Warning              | `bg-warning`                                    | amber-500 `#f59e0b`              |
 | Success              | `bg-success`                                    | green-600 `#16a34a`              |
 | Info                 | `bg-info`                                       | blue-600 `#2563eb`               |
-| Page background      | `bg-background`                                 | neutral-50 `#f8fafc` (light)     |
+| Page background      | `bg-background`                                 | neutral-50 `#f8fafc`             |
 | Surface / card       | `bg-surface` / `bg-card`                        | white `#ffffff`                  |
 | Raised / muted       | `bg-surface-raised` / `bg-muted`                | neutral-100 `#f1f5f9`            |
-| Foreground text      | `text-foreground` / `text-card-foreground`      | near-black (neutral-900 `#0f172a`)|
+| Foreground text      | `text-foreground` / `text-card-foreground`      | near-black neutral-900 `#0f172a` |
 | Muted text           | `text-muted-foreground`                         | mid-grey (neutral-500)           |
 | Subtle text          | `text-subtle-foreground`                        | lighter grey (neutral-400)       |
 | Border               | `border-border`                                 | neutral-200 `#e2e8f0`            |
 | Strong border        | `border-border-strong`                          | neutral-300                      |
 | Input border         | `border-input`                                  | neutral-200                      |
-| Focus ring           | `ring-ring` / `outline-ring`                    | emerald-teal (primary)           |
+| Focus ring           | `ring-ring` / `outline-ring`                    | violet (primary)                 |
 
 Each colored role also has `-hover`, `-subtle`, and `-fg` variants (e.g. `bg-danger-subtle`,
-`text-warning-fg`).
+`text-warning-fg`). White surfaces/text use `bg-surface`/`text-primary-fg` — **never** `bg-white`/
+`text-white` literals.
 
-> Note on `accent`: the shadcn `--accent` alias maps to the raised surface, matching shadcn's
-> "subtle hover" convention — it is **not** a vivid brand accent. For brand emphasis use
-> `primary`. The extra foundation scales (`surf-crest`, `aqua-spring`, `purple`, `grey`) are
-> available as raw utilities (`bg-aqua-spring-500`, …) but are **not** part of the semantic set
-> — prefer semantic tokens. There is no `ocean-green` or `cyprus` scale (removed) — do not
-> reference them.
+> The violet scale itself (`bg-violet-50` … `bg-violet-950`) is available for the **decorative**
+> brand needs the landing page has (gradients, soft tints, dark-section accents). Prefer the semantic
+> `primary`/`primary-subtle` tokens for component chrome; reach for the raw violet scale only for
+> gradients and one-off decorative fills.
 
 ---
 
@@ -104,48 +102,54 @@ Defined in `@theme` → generates `text-*` size utilities:
 | `text-h5`          | 14px  |  |                   |      |
 | `text-h6`          | 12px  |  |                   |      |
 
-Font family is **Poppins**, loaded via `next/font/google` in the root layout and exposed as
-`--font-poppins`; `html` applies `font-sans` in `globals.css`. If `cn()` is used to merge a
-custom `text-*` size token, that token must be registered in the `extendTailwindMerge` list in
-`src/shared/lib/utils.ts` (so a size class is not conflated with a colour class and dropped).
+### Fonts
+
+- **Inter** is the base sans, loaded via `next/font/google` in the root layout, exposed as
+  `--font-inter`, wired to `--font-sans` in `@theme`; `html` applies `font-sans` in `globals.css`.
+- **Playfair Display** (italic) powers the **display accents** in headings (e.g. the italic
+  "Anywhere!" / "Healthcare." emphasis), loaded as `--font-playfair`, wired to `--font-display` →
+  use the `font-display italic` utility on the emphasized span.
+
+If `cn()` merges a custom `text-*` size token, that token must be registered in the
+`extendTailwindMerge` list in `src/shared/lib/utils.ts` (so a size class is not conflated with a
+colour class and dropped).
 
 ---
 
 ## Radius
 
-`--radius: 0.625rem` (10px). shadcn derives `rounded-sm/md/lg/xl` from it. Use the
-`rounded-*` utilities, not arbitrary pixel radii.
+`--radius: 0.625rem` (10px). shadcn derives `rounded-sm/md/lg/xl` from it. Use the `rounded-*`
+utilities, not arbitrary pixel radii.
 
 ---
 
 ## Theme — Light by Default
 
-PantryChef ships a **light theme by default**. `:root` holds the light surfaces and text
-(`--background` neutral-50 `#f8fafc`, `--surface`/`--card` white `#ffffff`, `--border`
-neutral-200 `#e2e8f0`, `--foreground` near-black neutral-900). A **`.dark` block** in
-`theme.css` overrides the same semantic vars with dark values — it's the future dark theme,
-but **no toggle/`next-themes` is wired**, so the app renders light (no `.dark` class on `html`).
+MediNex+ ships a **light theme by default**. `:root` holds the light surfaces and text
+(`--background` neutral-50, `--surface`/`--card` white, `--border` neutral-200, `--foreground`
+neutral-900, `--primary` violet-600). A **`.dark` block** overrides the same semantic vars with dark
+values (future dark theme; no toggle wired). A `@custom-variant dark (&:is(.dark *))` is declared in
+`globals.css` so `dark:` utilities still resolve under a `.dark` ancestor.
 
-A `@custom-variant dark (&:is(.dark *))` is declared in `globals.css` so `dark:` utilities still
-resolve under a `.dark` ancestor. Build with the **semantic tokens** so a component renders
-correctly in either theme — never hardcode a light- or dark-specific colour.
+> The landing page's dark **AI-prescription** section is an intentional dark band on an otherwise
+> light page — it uses the violet scale on a dark backdrop, not the `.dark` theme.
 
 ---
 
 ## Invariants
 
 - Never hardcode hex in components — use the token utilities (or `var(--token)` when a utility
-  doesn't fit). The one sanctioned hex path is a data-driven decorative colour applied via
-  `style={{ … }}` (component chrome still uses tokens).
-- Never use raw Tailwind color classes (`bg-emerald-500`, `text-gray-400`) — only project tokens.
-- Primary brand is emerald-teal (`primary`); `secondary` is a light neutral. Don't swap in
-  Tailwind's built-in green/teal scales.
-- The app is **light by default**. Use semantic tokens so components render correctly in
-  either theme; don't author a light- or dark-only colour. The decorative dashboard icon wells
-  use `bg-{primary,info}/10` plus the `purple-500` foundation scale (a sanctioned one-off).
-- Borders default to `border-border`; use `border-strong` for stronger edges, `border-input`
-  for form fields. Never `border-gray-*`.
-- Prefer semantic tokens over raw palette utilities; reach for a raw scale
-  (`bg-emerald-teal-200`) only for a one-off decorative need.
+  doesn't fit, e.g. multi-stop gradients).
+- Never use raw Tailwind color classes. The raw **violet** scale is acceptable **only** for
+  decorative brand fills; component chrome uses semantic `primary`. Never `bg-emerald-500`,
+  `text-gray-400`, `text-white`, `bg-white` (use `text-primary-fg`, `bg-surface`).
+- Primary brand is **violet** (`primary`); `secondary` is a light neutral. Don't reintroduce the
+  legacy emerald-teal as the brand.
+- The app is **light by default**. Build with semantic tokens so components render correctly in
+  either theme.
+- Borders default to `border-border`; `border-strong` for stronger edges, `border-input` for form
+  fields. Never `border-gray-*`.
 - Radius comes from `--radius` via `rounded-*` — don't hardcode pixel radii.
-- Dark only — never author a light-mode-specific colour or add a theme toggle.
+- Type uses the scale utilities — never arbitrary `text-[Npx]`.
+- Fonts: base is **Inter** (`font-sans`); italic display accents use **Playfair** (`font-display
+  italic`). Don't reintroduce Poppins.

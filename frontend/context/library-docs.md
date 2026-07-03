@@ -1,6 +1,6 @@
 # Library Docs
 
-How **PantryChef** uses each third-party library — the project-specific patterns and
+How **MediNex+** uses each third-party library — the project-specific patterns and
 constraints, not general API docs. Read the relevant section before implementing a feature
 that touches one of these. The app is split into `frontend/` (Next.js) and `backend/`
 (NestJS); sections are grouped accordingly.
@@ -38,9 +38,9 @@ The response interceptor owns cross-cutting concerns:
 - Services return unwrapped, typed domain data (unwrap the `{ success, message, data }` envelope → `.data.data`).
 - Don't re-implement 401/403/5xx per call — the interceptor owns it.
 - The refresh call uses a bare `axios.post` so it can't recurse through the interceptor.
-- Feature services live in `features/<domain>/api/*.service.ts` (`pantry.service`,
-  `recipe.service`, `meal-plan.service`, `shopping.service`, `preferences.service`,
-  `auth.service`).
+- Feature services live in `features/<domain>/api/*.service.ts` (`auth.service`, and future
+  `appointments.service`, `patients.service`, `pharmacy.service`, `lab.service`, `billing.service`).
+  Every service returns tenant-scoped, typed domain data.
 
 ## shadcn/ui (Radix + Base UI)
 
@@ -57,7 +57,8 @@ for variants and the design tokens.
 ## Tailwind CSS v4
 
 - Tokens are defined with `@theme` in `shared/styles/theme.css` (imported by `app/globals.css`) — **no `tailwind.config.ts`** for colors/tokens. See ui-tokens.md.
-- Utilities are generated from `--color-*`, `--text-*`, `--radius` variables (e.g. `bg-primary`, `text-foreground`, `border-border`, `text-h2`).
+- Utilities are generated from `--color-*`, `--text-*`, `--radius`, and `--font-*` variables (e.g. `bg-primary`, `text-foreground`, `border-border`, `text-h2`, `font-sans`, `font-display`).
+- **Style with utilities only — no hand-written CSS files / CSS modules** for components. A decorative gradient may be expressed inline via `style={{ ... }}` using `var(--color-*)` tokens (the sole exception).
 - For conditional/merged classes use the `cn` helper from `@lib/utils`. Never concatenate class strings by hand.
 
 ## React Hook Form + Zod
@@ -86,8 +87,8 @@ needs (e.g. pantry low-stock count, shopping-list count for a navbar badge).
 
 ## recharts (optional)
 
-Only for the recipe view's nutrition visualisation (calories / macro breakdown). Keep it
-behind the recipe view; don't pull charts into other features. Style via token-backed colors.
+For dashboard / finance analytics visualisation (revenue, appointment trends, etc.). Keep charts
+behind the views that need them; dynamic-import heavy charts. Style via token-backed colors.
 
 ## lucide-react
 
@@ -100,8 +101,9 @@ via token-backed classes, never raw hex.
 
 ## NestJS
 
-- One **module** per domain (`auth`, `users`/preferences, `pantry`, `recipes`,
-  `meal-planner`, `shopping`); controllers are thin, services hold logic.
+- One **module** per domain (`auth`, `hospitals`, `users`, `doctors`, `patients`,
+  `appointments`, `prescriptions`, `ai`, `pharmacy`, `lab`, `billing`); controllers are thin,
+  services hold logic. Every per-tenant query is scoped to `hospitalId`.
 - Global `ValidationPipe` (`whitelist: true, transform: true`) in `main.ts`; `cookie-parser` enabled; CORS configured with `credentials: true` and the frontend origin.
 - Use Nest exceptions (`NotFoundException`, `ForbiddenException`, …); a global exception filter shapes them into `{ success, message }`.
 - A global response interceptor wraps successful returns in `{ success: true, message, data }`.
@@ -119,16 +121,16 @@ app.setGlobalPrefix("api")
 - Single injectable `PrismaService extends PrismaClient` (connects `onModuleInit`). Inject it into services; **never** `new PrismaClient()` elsewhere.
 - Schema in `prisma/schema.prisma`; change it via `npx prisma migrate dev --name <change>`; commit migrations. `prisma generate` runs on install/migrate.
 - Use `select`/`include` deliberately; **never select or return `passwordHash`**.
-- Recipe sub-shapes (`ingredients`, `steps`, `nutrition`, `tips`) are stored as `Json`
-  columns; `diet`, `cuisine`, `difficulty`, and meal `slot` are **enums** shared across models.
-- Every per-user query is scoped to `userId` (pantry, recipes, meal plan, shopping,
-  preferences). A generated recipe is persisted only on save.
+- Flexible sub-shapes (e.g. prescription `items`, invoice `lineItems`) are stored as `Json`
+  columns; `role`, `appointmentStatus`, `prescriptionSource`, etc. are **enums** shared across models.
+- **Every query is scoped to the tenant** (`hospitalId`), plus `userId` where user-owned. An
+  AI-drafted prescription is created as a `draft` and persisted as `approved` only on doctor review.
 
 ```typescript
-// pantry.service.ts
-const items = await this.prisma.pantryItem.findMany({
-  where: { userId },
-  orderBy: { expiryDate: "asc" },
+// appointments.service.ts
+const items = await this.prisma.appointment.findMany({
+  where: { hospitalId },
+  orderBy: { scheduledAt: "asc" },
 })
 ```
 
@@ -166,18 +168,18 @@ first request. `config/env.validation.ts` defines an `EnvironmentVariables` clas
 class-validator decorators; `ConfigModule.forRoot({ isGlobal: true, load: [configuration],
 validate: validateEnv })` runs it.
 
-- Validate presence/type of `DATABASE_URL`, `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`,
-  `GEMINI_API_KEY`; optional `PORT`, `CORS_ORIGIN`, `NODE_ENV` with defaults.
-- `config/configuration.ts` returns a **typed, namespaced** object (`jwt.accessSecret`,
-  `gemini.model`, …). In feature code read config via `ConfigService.get(...)` /
-  `getOrThrow(...)`, **never** `process.env`.
+- Validate presence/type of `DATABASE_URL`, `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`, and the
+  AI provider key (once chosen); optional `PORT`, `CORS_ORIGIN`, `NODE_ENV` with defaults.
+- `config/configuration.ts` returns a **typed, namespaced** object (`jwt.accessSecret`, `ai.model`,
+  …). In feature code read config via `ConfigService.get(...)` / `getOrThrow(...)`, **never**
+  `process.env`.
 
 ## helmet + `@nestjs/throttler` (security)
 
 - `app.use(helmet())` in `main.ts` for security headers.
 - A **global** `ThrottlerGuard` (via `APP_GUARD`) rate-limits everything; tighten limits on
-  `/auth/*` (brute force) and `/recipes/generate` (each call costs a paid Gemini request) with
-  a route-level `@Throttle(...)`.
+  `/auth/*` (brute force) and any paid AI endpoint (each call costs an AI request) with a
+  route-level `@Throttle(...)`.
 
 ## nestjs-pino + `LoggingInterceptor` (logging)
 
@@ -213,78 +215,39 @@ handled by the specific filter and never fall through to the generic 500.
 
 ---
 
-## Google Gemini — AI recipe generation
+## AI — prescription drafting (server-side, provider TBD)
 
-PantryChef's AI runs **server-side in NestJS** via the official `@google/genai` SDK. The
-`GEMINI_API_KEY` lives only in `backend/.env` — it is never exposed to the browser, and the
-frontend only talks to our own NestJS endpoint (`POST /api/recipes/generate`).
+MediNex+'s AI runs **server-side in NestJS only**, isolated in the `ai/` module and injected into
+`prescriptions`. The AI key lives only in `backend/.env` — never exposed to the browser; the frontend
+only talks to our own NestJS endpoint.
 
-```bash
-npm install @google/genai   # in backend/
-```
+> **Provider is an open decision.** The legacy recipe app used Google Gemini (`@google/genai`); the
+> prescription feature's provider/model should be confirmed before the `ai/` module is built. Whatever
+> is chosen, keep it behind the `ai/` service interface so swapping it touches one file. **Document the
+> chosen provider, SDK, and model id here once decided.**
 
-```typescript
-import { GoogleGenAI } from "@google/genai"
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY })
-```
+### Pattern (provider-agnostic)
 
-### Model
-
-| Use case | Model | Why |
-| --- | --- | --- |
-| Recipe generation | `gemini-2.5-flash` | Fast, cost-effective, strong instruction-following for structured recipe output. The project default. |
-
-Use the exact model id `gemini-2.5-flash`.
-
-### Generation — structured recipe output
-
-The generator takes the user's pantry items plus the active diet and cuisine filters, builds
-a prompt, and asks Gemini for a **single recipe as JSON** (so the frontend renders fields
-directly instead of parsing prose). Use `responseMimeType: "application/json"` with a
-`responseSchema` so the model returns a typed object.
-
-```typescript
-// recipes/ai/ai.service.ts (essentials)
-const response = await ai.models.generateContent({
-  model: "gemini-2.5-flash",
-  contents: buildRecipePrompt({ pantry, diet, cuisine }),
-  config: {
-    responseMimeType: "application/json",
-    responseSchema: RECIPE_RESPONSE_SCHEMA, // title, cuisine, diet, difficulty, servings,
-                                            // ingredients[], steps[], nutrition{}, tips[]
-    temperature: 0.7,
-  },
-})
-const recipe = JSON.parse(response.text) // validate before returning to the client
-```
-
-**Rules:**
-
-- **Build the prompt from the authenticated user's pantry + filters only** — never trust a
-  pantry or userId the client supplies beyond the request's authenticated identity.
-- **Honour the active diet and cuisine filters** explicitly in the prompt and the schema
-  (`diet`/`cuisine` enums) — a vegan request must never return meat.
-- **Validate the parsed JSON** (e.g. a Zod/DTO check) before returning — treat model output
-  as untrusted; reject/repair malformed shapes rather than passing them through.
-- The generate endpoint **returns** the recipe; it does **not** persist it. Saving is the
-  separate `POST /api/recipes` flow.
-- Prefer pantry ingredients; clearly mark anything the recipe needs that isn't in the pantry
-  (this feeds the "add missing to shopping list" action).
+- The `prescriptions` service builds a prompt from the **tenant-scoped** patient diagnosis/history/
+  vitals and asks the AI for a **structured prescription as JSON** (medicines, dose, frequency,
+  duration) so the frontend renders fields directly.
+- **Validate the parsed JSON** (Zod/DTO) before returning — treat model output as untrusted.
+- The AI result is created as a **`draft`**; it is persisted as `approved` only when the doctor
+  reviews and confirms. **AI never finalizes a prescription on its own.**
 
 ### Failure handling
 
-- Wrap every Gemini call in try/catch. On error (timeout, quota, safety block, malformed
-  output after a repair attempt), return a clean 4xx/5xx with a friendly message — the rest of
-  the app (pantry, saved recipes, planner, shopping) must keep working without AI.
-- Log failures with a `[AiService]` prefix; never log the API key.
-- `GEMINI_API_KEY` is backend-only — never `NEXT_PUBLIC_`, never sent to the client.
+- Wrap every AI call in try/catch. On error (timeout, quota, malformed output), return a clean
+  4xx/5xx with a friendly message — the rest of the platform must keep working without AI.
+- Log failures with an `[AiService]` prefix; never log the API key. The AI key is backend-only —
+  never `NEXT_PUBLIC_`, never sent to the client.
 
 ---
 
-## Out of scope
+## Out of scope (for now)
 
-PantryChef has **no payments, social, or third-party store integrations** — deliberate scope
-decisions (see project-overview.md). Do not add a payment SDK, an auth provider beyond the
-JWT/bcryptjs flow above, or a second LLM provider. If any of these is introduced later,
-document its pattern here first.
+See project-overview.md for the current scope. MediNex+ marketing surfaces pricing tiers, but a live
+payment integration is **not** wired yet — don't add a payment SDK until that phase. Don't add an auth
+provider beyond the JWT/bcryptjs flow above. If any new integration is introduced, document its
+pattern here first.
 </content>

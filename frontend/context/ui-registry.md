@@ -17,6 +17,14 @@ note. Feature composites are logged here as they are built.
 
 ---
 
+> **MediNex+ migration:** this registry is updated for the hospital app. The legacy recipe composites
+> (Pantry, Recipes, Meal Planner, Shopping, dietary preferences) were **removed** — their entries
+> below are noted as removed and kept only as historical reference. Brand is now **violet** (light
+> theme); class names that use semantic tokens (`bg-primary`, `text-foreground`, …) remain correct
+> because the tokens were repointed to violet.
+
+---
+
 ## UI Typos / Known Issues
 
 Record UI copy typos and other UI issues here: location (page/component + file), current
@@ -24,15 +32,14 @@ Record UI copy typos and other UI issues here: location (page/component + file),
 
 | # | Location (component / file) | Current text | Correct text | Status |
 | - | --------------------------- | ------------ | ------------ | ------ |
-| 1 | scaffold chrome (`Logo`/`Navbar`/`Footer`, `(customer)` group) | portfolio template copy + naming | replace with PantryChef `(auth)`/`(app)` chrome | Open (Phase 0 cleanup) |
+| 1 | (none currently)            | —            | —            | —      |
 
 ---
 
 ## Components
 
-The app is at the **scaffold** stage: only shadcn primitives and placeholder portfolio chrome
-exist. Feature composites (auth forms, `PantryRow`, `RecipeCard`, `RecipeView`, `MealSlot`,
-`ShoppingItemRow`) are logged here as they land.
+Token-styled shadcn primitives + the auth/dashboard/app-shell composites are in place, plus the
+landing-page composites (logged below). Hospital feature composites are logged here as they land.
 
 ### Primitives (`src/shared/components/ui`)
 
@@ -64,16 +71,45 @@ Token-styled shadcn/ui primitives currently vendored. Add more (`select`, `table
 
 | Component | File | Notes |
 | --------- | ---- | ----- |
-| Logo · Navbar · Footer | `Logo.tsx` · `Navbar.tsx` · `Footer.tsx` | **Placeholder portfolio chrome** from the scaffold. To be replaced with PantryChef chrome: `(auth)` layout card + `(app)` sidebar/top-nav (Pantry, Generate, Recipes, Meal Planner, Shopping List, Preferences). Don't build on the portfolio framing. |
+| GlobalHosts | `GlobalHosts.tsx` | Mounts the sonner `<Toaster>` + `ConfirmDialogHost` once in the root layout. |
 
 ### Features (`src/features/*`)
 
 | Component | File | Notes |
 | --------- | ---- | ----- |
-| LoginForm · SignupForm | `features/auth/components/{LoginForm,SignupForm}.tsx` | The auth form pattern (see entry below). `"use client"`, RHF + Zod (`auth.schema.ts`), submit via `auth.service`, redirect `/` on success. |
+| LoginForm · SignupForm | `features/auth/components/{LoginForm,SignupForm}.tsx` | The auth form pattern (see entry below). `"use client"`, RHF + Zod (`auth.schema.ts`), submit via `auth.service`. |
+| AppShell · UserMenu | `features/auth/components/{AppShell,UserMenu}.tsx` | The `(app)` shell. Nav now MediNex+ (Dashboard, Settings). |
+| Dashboard cards | `features/dashboard/components/*` | `StatCard`/`ActionCard`/`ComingSoon` (see Dashboard entry). Recipe-specific cards removed. |
+| **Landing** | `features/landing/components/*` | The public landing page sections (see Landing entry below). |
 
-All `(app)` pages are now built (dashboard, pantry, generate, recipes, meal-plan, shopping,
-settings). Remaining work is wiring them to the real backend APIs as the phases land.
+Current `(app)` pages: **dashboard, settings** (the recipe pages were removed in the migration).
+
+---
+
+## Landing page (`features/landing`) — MediNex+ marketing site
+
+Files (one component per file): `components/{LandingPage,Navbar,Hero,HeroDashboardMock,TrustedBy,
+Solutions,SolutionCard,AiPrescription,AiInfoPanel,AiMockShell,AiPatientRow,AiStats,WhyChoose,WhyCard,
+HowItWorks,Testimonials,Pricing,PricingCard,Faq,CtaSection,Footer,DemoModal,Logo,BookDemoButton,
+SectionHeading}.tsx` · `constants.ts` · `cta-styles.ts` · `schemas/demo.schema.ts` ·
+`stores/demo-modal.store.ts`. Section components compose their card/sub-components (e.g. `Solutions`
+→ `SolutionCard`, `WhyChoose` → `WhyCard`, `Pricing` → `PricingCard`, `AiPrescription` →
+`AiInfoPanel`/`AiMockShell`/`AiPatientRow`).
+
+Built **entirely with Tailwind utilities + tokens + shadcn primitives** — no CSS files, no
+hand-rolled primitives. Gradients/orbs use inline `style` with `var(--color-violet-*)` /
+`color-mix(...)` (the sanctioned decorative exception). All copy is in `constants.ts`.
+
+| Element | Pattern |
+| ------- | ------- |
+| Composition | `app/page.tsx` → `LandingPage` (Server) composes section components in order; only interactive leaves are `"use client"`. |
+| Client leaves | `Navbar` (scroll + mobile drawer), `Pricing` (billing toggle), `BookDemoButton`, `DemoModal`. Others are Server Components. `AiPrescription` is Server using **uncontrolled** shadcn `Tabs`. |
+| Marketing CTAs | shared className strings in `cta-styles.ts`: `ctaPrimary` (violet gradient + `shadow-violet-600/30`), `ctaOutline` (white pill via `bg-surface/90`), `ctaGhost` (violet outline), `ctaTrial` (`bg-danger`). |
+| Section heading | `SectionHeading` (tag chip `bg-violet-100 text-primary` + `display-*` title + muted sub). |
+| Tabs / Accordion | **shadcn `Tabs`** (AI section + Pricing toggle), **shadcn `Accordion`** (FAQ). Active states restyled via `data-active:` / `aria-expanded:` merged through `cn`. |
+| Modal | `DemoModal` = **shadcn `Dialog`** + RHF + Zod (`demo.schema.ts`) + `Field`/`Input`/`Button`; controlled by the `demo-modal` Zustand store; opened by `BookDemoButton`. Auth toast pattern on submit. |
+| Type | **All content text uses `Typography`** (`as`/`variant`/`weight`), colour via `className`. Marketing headings scale up with type-scale tokens in `className` (e.g. `lg:text-display-2xl`); the Playfair accent is `font-display italic` on the child `<em>`. Interactive controls (buttons, tab triggers, nav/footer links, `DialogTitle`) keep utility classes. No arbitrary `text-[Npx]`. |
+| Color | Semantic tokens for chrome + feedback (`primary`, `foreground`, `muted/subtle-foreground`, `surface`, `card`, `border`, `muted`, `danger/warning/success`, `primary-fg`). Violet scale + a few hues only for decorative fills (gradients via inline `style`, gold stars, blue "voice" accent, `bg-neutral-900` dark surfaces). No `text-white`/`bg-white`, no hex, no raw chrome colors. |
 
 ---
 
@@ -193,13 +229,16 @@ Last updated: 2026-06-28
 | List row | `flex items-center gap-3 rounded-lg p-2 hover:bg-muted`; row icon well `size-10 rounded-lg` |
 | Stat/section grids | stats `grid gap-6 sm:grid-cols-2 lg:grid-cols-3`; actions/lists `md:grid-cols-2` / `lg:grid-cols-2` |
 
-**Pattern notes:** multi-color icon wells (primary/blue/purple) are the dashboard accent. The
-presentational cards (`StatCard`/`ActionCard`/`RecentRecipes`/`UpcomingMeals`) are unchanged, but the
-page now renders a **client `DashboardView`** that fetches **real data** in one `Promise.all`
-(`listRecipes` + `listPantry` + `listMealPlan` for the current week) → stats (counts), Recent Recipes
-(latest 3, link to detail), Upcoming Meals (this week's first 3). Loading skeletons + empty states;
-**all mock `data/*.data.ts` removed** (dashboard view types live in `features/dashboard/types/`).
-`ComingSoon` is the stub for unbuilt nav routes.
+**Pattern notes:** multi-color icon wells (primary/info/purple) are the dashboard accent. In the
+MediNex+ migration the recipe-specific cards (`RecentRecipes`/`UpcomingMeals`) and the recipe data
+fetch were **removed**; `DashboardView` now renders a minimal hospital placeholder (KPI `StatCard`s +
+`ActionCard` + `ComingSoon`) pending the hospital feature slices.
+
+> **REMOVED in the MediNex+ migration — the recipe feature composites below no longer exist.** The
+> Pantry, Recipes, Meal Planner, and Shopping sections that follow document the deleted PantryChef
+> features; kept only as historical reference. The Settings `PreferencesSection` still exists but its
+> dietary content is legacy. **Do not build on these patterns** — follow ui-rules.md and the Landing
+> entry.
 
 ### Pantry (`features/pantry`)
 
@@ -309,6 +348,31 @@ Last updated: 2026-06-28
   optimistic mutation. Wired in: Pantry item, Recipe card (list), Recipe detail, Meal-plan slot remove,
   Shopping "Clear Checked". (Shopping "Add to Pantry" is a move, not a delete — no confirm.)
 
+## Loading skeletons (content-shaped)
+
+Last updated: 2026-06-28
+
+Use the shadcn **`Skeleton`** (`ui/skeleton.tsx`, CLI-installed — `animate-pulse rounded-md bg-muted`)
+for **every** loading placeholder. **Never** hand-roll `animate-pulse bg-muted` divs.
+
+**Rule: skeletons mirror the real content's shape, not plain blocks.** Rebuild the actual layout
+(same `Card`, grid, spacing) and swap each text/media element for a `<Skeleton>` sized to it. Pass
+geometry via `className`; the pulse/colour come from the component.
+
+| View | Skeleton shape (matches the real layout) |
+| ---- | ---------------------------------------- |
+| Shopping (`ShoppingView`) | **1** category `Card` → header bar + 4 rows of `size-5` checkbox + name (`h-4`) / qty (`h-3`) |
+| Pantry (`PantryView`) | **6** `Card p-5` in the 3-col grid → title/category lines + `size-4` ✕ + quantity row + expiry line |
+| Recipes (`RecipesView`) | **6** `Card` in the 3-col grid → `h-44` media well + title + 2 desc lines + tag pills + meta row + `h-px` separator + button row (`flex-1` + `size-8`) |
+| Recipe detail (`RecipeDetail`) | back-link + header `Card p-8` (title/desc/tags/time) + `lg:grid-cols-3`: ingredients `Card` (6 lines) + instructions `Card` (5 × `size-7` numbered step + 2 lines) |
+| Dashboard (`DashboardView`) | **3** stat `Card`s (`size-12` icon well + label/value) + **2** list `Card`s (header + 3 × `size-10` row) |
+| Settings prefs (`PreferencesSection`) | label + 6 pill skeletons, label + input, label + 8 pills, 2-up `h-12` toggle, `h-9 w-40` save button |
+
+**Pattern notes:** skeletons live inline in each view's `loading` branch (no separate skeleton
+files), reusing the real component's container classes (`Card p-5`, the grid, `divide-y`, etc.).
+Counts are fixed placeholders (e.g. 6 cards) — they don't reflect real data. The **only** retained
+raw `animate-pulse` is the Generate page's loading **chef-hat icon** (an animated icon, not a skeleton).
+
 ## API integration pattern (all feature pages)
 
 Every feature page is now wired to the NestJS API (mock `data/*.data.ts` layers removed).
@@ -318,7 +382,7 @@ The consistent shape — match it for any new data-backed view:
   `@lib/axios.config` instance (`withCredentials` → httpOnly cookies). Each returns unwrapped,
   typed domain data (`res.data.data`). Create payloads are `Omit<T, "id" | …server-set>`.
 - **Fetch**: client view loads in a `useEffect` with an `active` cleanup flag; `loading` state
-  drives a **skeleton** (`animate-pulse rounded-* bg-muted` blocks sized like the real cards).
+  drives a **content-shaped `Skeleton`** (see the "Loading skeletons" section above).
 - **Empty vs. loading vs. error** are distinct: skeleton while loading; dashed-border empty panel
   when the list is genuinely empty; **error toast** via `getErrorMessage(error)` (never a silent
   fail). Detail pages also distinguish **404** (axios `response.status === 404`) from other errors.
@@ -338,14 +402,14 @@ are token classes — never hex or raw Tailwind colours. This baseline will be e
 
 | Property | Correct class |
 | -------- | ------------- |
-| Page background | `bg-background` (charcoal-black-900) |
-| Card / panel background | `bg-card` / `bg-surface` (`#1a2329`) |
-| Raised / muted surface | `bg-surface-raised` / `bg-muted` |
-| Soft brand surface | `bg-primary-subtle` |
-| Card / panel border | `border border-border` (`#242b32`) |
+| Page background | `bg-background` (neutral-50 `#f8fafc`) |
+| Card / panel background | `bg-card` / `bg-surface` (white) |
+| Raised / muted surface | `bg-surface-raised` / `bg-muted` (neutral-100) |
+| Soft brand surface | `bg-primary-subtle` (violet-50) |
+| Card / panel border | `border border-border` (neutral-200) |
 | Input border | `border-input` |
-| Active / highlight border | `border-primary` (emerald-teal) |
-| Focus ring | `ring-ring` (emerald-teal) |
+| Active / highlight border | `border-primary` (violet) |
+| Focus ring | `ring-ring` (violet) |
 | Shadow | `shadow-sm` (raised panels, pills); `shadow-md` (floating/dialogs) |
 
 ### Radius scale (intentional hierarchy — match by element type)
@@ -369,7 +433,7 @@ are token classes — never hex or raw Tailwind colours. This baseline will be e
 
 ### Color
 
-- Brand / links / active states: `text-primary` (emerald-teal).
-- Body text: `text-foreground` (near-white) primary, `text-muted-foreground` secondary.
-- Status: `warning`/`danger` for expiry + low-stock; `success` for fresh/saved/done.
+- Brand / links / active states: `text-primary` (violet).
+- Body text: `text-foreground` (near-black) primary, `text-muted-foreground` secondary.
+- Status: `success`/`warning`/`danger`/`info` for feedback states.
 </content>

@@ -1,6 +1,5 @@
-import { redirect } from "next/navigation"
+import { LandingPage } from "@features/landing/components"
 
-// No public landing — entry point is the auth flow.
 export default function HomePage() {
-  redirect("/login")
+  return <LandingPage />
 }

@@ -3,6 +3,11 @@
    e.g. bg-brand-600, text-neutral-900, border-red-300
    ============================================================ */
 @theme {
+  /* Font families → generate font-sans (Inter base) and font-display (Playfair italic accents).
+     The var(--font-*) refs are set on <html> by next/font in the root layout. */
+  --font-sans:    var(--font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: var(--font-playfair), Georgia, "Times New Roman", serif;
+
   /* Typography scale → generates text-display-2xl, text-h1, text-body-base, etc. */
   --text-display-2xl: 52px;
   --text-display-xl:  48px;
@@ -147,7 +152,20 @@
   --color-aqua-spring-900: #072c1d;
   --color-aqua-spring-950: #041c12;
 
-  /* Purple — Primary UI */
+  /* Violet — MediNex+ Primary Brand (matches the landing design #7C3AED family) */
+  --color-violet-50:  #f5f3ff;
+  --color-violet-100: #ede9fe;
+  --color-violet-200: #ddd6fe;
+  --color-violet-300: #c4b5fd;
+  --color-violet-400: #a78bfa;
+  --color-violet-500: #8b5cf6;
+  --color-violet-600: #7c3aed; /* Base brand */
+  --color-violet-700: #6d28d9;
+  --color-violet-800: #5b21b6;
+  --color-violet-900: #4c1d95;
+  --color-violet-950: #2e1065;
+
+  /* Purple — legacy UI scale (retained) */
   --color-purple-50:  #f0eeff;
   --color-purple-100: #e3dffd;
   --color-purple-200: #c8c0fb;
@@ -181,10 +199,10 @@
       No Tailwind utilities yet, just named CSS vars.
    ============================================================ */
 :root {
-  /* Primary (emerald-teal — matches the design's green) */
-  --primary:                var(--color-emerald-teal-500);
-  --primary-hover:          var(--color-emerald-teal-600);
-  --primary-subtle:         var(--color-emerald-teal-50);
+  /* Primary (violet — MediNex+ brand #7C3AED) */
+  --primary:                var(--color-violet-600);
+  --primary-hover:          var(--color-violet-700);
+  --primary-subtle:         var(--color-violet-50);
   --primary-fg:             #ffffff;
 
   /* Secondary (light neutral) */
@@ -227,7 +245,7 @@
   --border:                 var(--color-neutral-200);
   --border-strong:          var(--color-neutral-300);
   --input:                  var(--color-neutral-200);
-  --ring:                   var(--color-emerald-teal-500);
+  --ring:                   var(--color-violet-600);
   --radius:                 0.625rem;
 
   /* Text (light) */
@@ -265,9 +283,9 @@
    ============================================================ */
 .dark {
   /* Primary */
-  --primary:                var(--color-emerald-teal-400);
-  --primary-hover:          var(--color-emerald-teal-300);
-  --primary-subtle:         var(--color-emerald-teal-950);
+  --primary:                var(--color-violet-400);
+  --primary-hover:          var(--color-violet-300);
+  --primary-subtle:         var(--color-violet-950);
 
   /* Secondary */
   --secondary:              var(--color-charcoal-black-700);
@@ -305,7 +323,7 @@
   --border:                 var(--color-neutral-700);
   --border-strong:          var(--color-neutral-600);
   --input:                  var(--color-neutral-700);
-  --ring:                   var(--color-emerald-teal-400);
+  --ring:                   var(--color-violet-400);
 
   /* Text */
   --foreground:             var(--color-neutral-50);
@@ -387,4 +405,17 @@
   --color-sidebar-accent-foreground:  var(--sidebar-accent-foreground);
   --color-sidebar-border:             var(--sidebar-border);
   --color-sidebar-ring:               var(--sidebar-ring);
+
+  /* Accordion open/close animation (base-ui exposes --accordion-panel-height) */
+  --animate-accordion-down: accordion-down 0.2s ease-out;
+  --animate-accordion-up:   accordion-up 0.2s ease-out;
+}
+
+@keyframes accordion-down {
+  from { height: 0; }
+  to { height: var(--accordion-panel-height); }
+}
+@keyframes accordion-up {
+  from { height: var(--accordion-panel-height); }
+  to { height: 0; }
 }
