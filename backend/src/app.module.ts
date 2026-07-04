@@ -21,7 +21,7 @@ import { HealthModule } from "./modules/health/health.module";
     ThrottlerModule.forRoot([{ ttl: 60_000, limit: 100 }]),
     PrismaModule,
     AuthModule,
-    // Feature modules (users/preferences, pantry, recipes, ai, meal-planner, shopping)
+    // Feature modules (users, patients, appointments, ai/prescriptions, pharmacy, billing)
     // are added in their respective build-plan phases.
     HealthModule,
   ],

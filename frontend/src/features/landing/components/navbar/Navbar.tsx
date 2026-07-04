@@ -64,39 +64,46 @@ export function Navbar() {
         </button>
       </nav>
 
-      {/* Mobile drawer */}
+      {/* Mobile drawer — wrapper clips the off-canvas panel so it never widens the page */}
       <div
         className={cn(
-          "fixed inset-0 z-40 bg-neutral-900/40 backdrop-blur-sm transition-opacity lg:hidden",
-          menuOpen ? "opacity-100" : "pointer-events-none opacity-0"
-        )}
-        onClick={close}
-        aria-hidden
-      />
-      <aside
-        className={cn(
-          "fixed inset-y-0 right-0 z-50 flex w-72 max-w-[80vw] flex-col gap-2 bg-surface p-6 pt-20 shadow-xl transition-transform lg:hidden",
-          menuOpen ? "translate-x-0" : "translate-x-full"
+          "fixed inset-0 z-40 overflow-x-hidden lg:hidden",
+          menuOpen ? "" : "pointer-events-none"
         )}
       >
-        {NAV_LINKS.map((link) => (
-          <a
-            key={link.href}
-            href={link.href}
-            onClick={close}
-            className="rounded-lg px-4 py-3 text-body-lg font-medium text-foreground transition-colors hover:bg-primary-subtle hover:text-primary"
-          >
-            {link.label}
-          </a>
-        ))}
-        <div className="my-3 h-px bg-border" />
-        <Link href="/login" className={cn(ctaGhost, "w-full")} onClick={close}>
-          Sign in
-        </Link>
-        <Link href="/signup" className={cn(ctaTrial, "w-full")} onClick={close}>
-          Free 14 days trial
-        </Link>
-      </aside>
+        <div
+          className={cn(
+            "absolute inset-0 bg-neutral-900/40 backdrop-blur-sm transition-opacity",
+            menuOpen ? "opacity-100" : "opacity-0"
+          )}
+          onClick={close}
+          aria-hidden
+        />
+        <aside
+          className={cn(
+            "absolute inset-y-0 right-0 flex w-72 max-w-[80vw] flex-col gap-2 bg-surface p-6 pt-20 shadow-xl transition-transform",
+            menuOpen ? "translate-x-0" : "translate-x-full"
+          )}
+        >
+          {NAV_LINKS.map((link) => (
+            <a
+              key={link.href}
+              href={link.href}
+              onClick={close}
+              className="rounded-lg px-4 py-3 text-body-lg font-medium text-foreground transition-colors hover:bg-primary-subtle hover:text-primary"
+            >
+              {link.label}
+            </a>
+          ))}
+          <div className="my-3 h-px bg-border" />
+          <Link href="/login" className={cn(ctaGhost, "w-full")} onClick={close}>
+            Sign in
+          </Link>
+          <Link href="/signup" className={cn(ctaTrial, "w-full")} onClick={close}>
+            Free 14 days trial
+          </Link>
+        </aside>
+      </div>
     </header>
   )
 }

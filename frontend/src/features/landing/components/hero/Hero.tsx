@@ -26,9 +26,9 @@ export function Hero() {
 
       {/* rotating stamp */}
       <div aria-hidden className="pointer-events-none absolute right-[6%] top-28 hidden size-24 lg:block">
-        <svg viewBox="0 0 100 100" className="size-full animate-spin [animation-duration:20s]">
+        <svg viewBox="0 0 100 100" className="size-full animate-spin [animation-direction:reverse] [animation-duration:20s]">
           <defs>
-            <path id="hero-stamp" d="M50,50 m-37,0 a37,37 0 1,1 74,0 a37,37 0 1,1 -74,0" />
+            <path id="hero-stamp" d="M50,50 m-42,0 a42,42 0 1,1 84,0 a42,42 0 1,1 -84,0" />
           </defs>
           <text className="fill-primary text-[9px] font-bold uppercase tracking-[0.18em]">
             <textPath href="#hero-stamp">Health One Platform • Complete Care •</textPath>
@@ -62,21 +62,21 @@ export function Hero() {
           Connect doctors and patients with effortless scheduling, secure records, and smooth
           hospital operations, all in one platform.
         </Typography>
-        <div className="flex flex-wrap justify-center gap-3">
+        <div className="flex flex-col justify-center gap-3 sm:flex-row sm:flex-wrap">
           <Link
             href="/login"
-            className="inline-flex items-center justify-center gap-2 rounded-lg bg-linear-to-br from-primary to-primary-hover px-6 py-3 text-body-base font-semibold text-primary-fg shadow-lg shadow-primary/30 transition-all hover:-translate-y-0.5"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-linear-to-br from-primary to-primary-hover px-6 py-3 text-body-base font-semibold text-primary-fg shadow-lg shadow-primary/30 transition-all hover:-translate-y-0.5 sm:w-auto"
           >
             <Calendar className="size-4" aria-hidden /> Book Demo
           </Link>
-          <Link href="/signup" className={cn(ctaTrial, "px-6 py-3")}>
-            free 14 days trial
+          <Link href="/signup" className={cn(ctaTrial, "w-full px-6 py-3 sm:w-auto")}>
+            Free 14 days trial
           </Link>
         </div>
       </div>
 
-      {/* dashboard preview + floating cards */}
-      <div className="relative z-10 mx-auto mt-14 w-full max-w-6xl">
+      {/* dashboard preview + floating cards — hidden on mobile (too detailed for small screens) */}
+      <div className="relative z-10 mx-auto mt-14 hidden w-full max-w-6xl md:block">
         <HeroDashboardMock />
 
         {/* reviews card */}

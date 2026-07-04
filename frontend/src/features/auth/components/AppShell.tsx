@@ -3,7 +3,7 @@
 import { useEffect } from "react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { ChefHat, Settings } from "lucide-react"
+import { Activity, Settings } from "lucide-react"
 
 import { cn } from "@lib/utils"
 import { APP_NAV } from "@shared/config/app-nav"
@@ -48,9 +48,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <div className="relative mx-auto flex h-16 max-w-7xl items-center px-6">
           <Link href="/dashboard" className="flex shrink-0 items-center gap-2">
             <span className="flex size-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
-              <ChefHat className="size-5" />
+              <Activity className="size-5" />
             </span>
-            <span className="text-h6 font-bold text-foreground">AI Recipe Generator</span>
+            <span className="text-h6 font-bold text-foreground">MediNex+</span>
           </Link>
 
           <nav className="absolute left-1/2 hidden w-max -translate-x-1/2 items-center gap-1 lg:flex">

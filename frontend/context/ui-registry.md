@@ -18,8 +18,8 @@ note. Feature composites are logged here as they are built.
 ---
 
 > **MediNex+ migration:** this registry is updated for the hospital app. The legacy recipe composites
-> (Pantry, Recipes, Meal Planner, Shopping, dietary preferences) were **removed** — their entries
-> below are noted as removed and kept only as historical reference. Brand is now **violet** (light
+> (Pantry, Recipes, Meal Planner, Shopping) were **removed** and their registry entries deleted;
+> hospital feature entries will be added as those slices land. Brand is now **violet** (light
 > theme); class names that use semantic tokens (`bg-primary`, `text-foreground`, …) remain correct
 > because the tokens were repointed to violet.
 
@@ -50,7 +50,7 @@ Token-styled shadcn/ui primitives currently vendored. Add more (`select`, `table
 | --------- | ---- | ----- |
 | Button | `ui/button.tsx` | base-ui Button + cva. Variants: default/outline/secondary/ghost/destructive/link; sizes xs–lg + icon. Token-styled (`bg-primary text-primary-foreground`, focus `ring-ring`). |
 | Card | `ui/card.tsx` | `Card`/`CardHeader`/`CardTitle`/`CardDescription`/`CardContent`/`CardFooter`. Base is surface only (`rounded-xl border bg-card`) so variants compose. `bg-card` resolves to `--surface`. |
-| Badge | `ui/badge.tsx` | cva chip, `border-border`. Use for expiry/low-stock status, diet/cuisine/difficulty tags. Style status variants with `warning`/`danger`/`success` tokens. |
+| Badge | `ui/badge.tsx` | cva chip, `border-border`. Use for status tags (e.g. appointment state, stock level, staff role). Style status variants with `warning`/`danger`/`success` tokens. |
 | Separator | `ui/separator.tsx` | Token `bg-border` rule (`role="separator"`); `h-px w-full` / `w-px h-full`. |
 | Input | `ui/input.tsx` | Token-styled text input (`border-input`, ring on focus). RHF `register()` ref flows through via React 19 ref-as-prop. |
 | PasswordInput | `ui/password-input.tsx` | **Composite** (not shadcn): `Input` + eye/eye-off toggle button (`pr-10`, button absolute right) that flips `type` password↔text. Forwards all Input props incl. `register()`. Used by Login/Signup (and available for Settings). |
@@ -216,7 +216,7 @@ and a red `Logout`. Auth via `useAuthStore`; hydration two paths (login/signup s
 
 ### Dashboard cards (`features/dashboard`)
 
-Files: `features/dashboard/components/{StatCard,ActionCard,RecentRecipes,UpcomingMeals}.tsx`
+Files: `features/dashboard/components/{StatCard,ActionCard,ComingSoon}.tsx`
 Last updated: 2026-06-28
 
 | Property | Class |
@@ -233,86 +233,6 @@ Last updated: 2026-06-28
 MediNex+ migration the recipe-specific cards (`RecentRecipes`/`UpcomingMeals`) and the recipe data
 fetch were **removed**; `DashboardView` now renders a minimal hospital placeholder (KPI `StatCard`s +
 `ActionCard` + `ComingSoon`) pending the hospital feature slices.
-
-> **REMOVED in the MediNex+ migration — the recipe feature composites below no longer exist.** The
-> Pantry, Recipes, Meal Planner, and Shopping sections that follow document the deleted PantryChef
-> features; kept only as historical reference. The Settings `PreferencesSection` still exists but its
-> dietary content is legacy. **Do not build on these patterns** — follow ui-rules.md and the Landing
-> entry.
-
-### Pantry (`features/pantry`)
-
-Files: `PantryView` (client orchestrator) · `PantryItemCard` · `ExpiringAlert` · `PantryFilters` · `AddItemDialog`
-Last updated: 2026-06-28
-
-| Property | Class / note |
-| -------- | ------------ |
-| Page header | title `Typography variant="display-lg" weight="bold"` + subtitle `body-lg text-muted-foreground`; `Button` "Add Item" (lucide `Plus`) on the right |
-| Expiring alert | `rounded-xl border border-warning/30 bg-warning/10 p-4` + `AlertCircle text-warning` |
-| Filter bar | `rounded-xl border border-border bg-surface p-4`; search `Input` w/ leading icon (`pl-9`); category pills `bg-primary text-primary-foreground` (active) / `bg-muted text-muted-foreground` (idle) |
-| Item card | `Card p-5 shadow-sm`; ✕ delete `hover:text-destructive`; expired → `text-destructive`; "Running Low" `bg-warning/15 text-warning` chip |
-| Add dialog | shadcn **`Dialog`** + **`Select`** (unit/category, via RHF `Controller`) + **`Checkbox`**; RHF + Zod (`pantry.schema.ts`), quantity uses `register(..., { valueAsNumber: true })` |
-
-**Pattern notes:** the page is a thin Server Component rendering the client `PantryView` (holds
-items + search + category + dialog state). **Mock data** (`data/pantry.data.ts`) with client-side
-add/delete/filter until the `/pantry` API exists. Expiry status (`lib/expiry.ts`) compares to
-`new Date()`. All text via `Typography`; modal/select/checkbox are **installed shadcn**, not hand-rolled.
-
-### Recipes — list + detail (`features/recipes`)
-
-Files: `RecipesView` (client list orchestrator) · `RecipeCard` · `RecipeTags` · `RecipeDetailView` (client) · `lib/scale-amount.ts`
-Last updated: 2026-06-28
-
-| Property | Class / note |
-| -------- | ------------ |
-| Recipe tags (shared `RecipeTags`) | `Typography` chip `rounded-full px-2.5 py-0.5` — **cuisine** `bg-primary/10 text-primary`; **difficulty by level** Easy `bg-success/10 text-success` · Medium `bg-warning/10 text-warning` · Hard `bg-danger/10 text-danger`; **diet** `bg-purple-500/10 text-purple-500`. Diet falls back to `[recipe.diet]` when `dietTags` absent. |
-| List filter bar | `rounded-xl border border-border bg-surface p-4 shadow-sm`; search `Input` w/ leading icon (`pl-9`) + two shadcn `Select` (`lg:w-44`) — All Cuisines / All Difficulties, options derived from the data |
-| Result count | `Typography body-sm text-muted-foreground` — "Showing X of Y recipes" |
-| Recipe card | `Card flex flex-col overflow-hidden shadow-sm hover:shadow-md`; **media well** `h-44 bg-gradient-to-br from-primary/20 to-primary/5` + `ChefHat size-16 text-primary`; body `p-5 gap-3`; title `h5` `text-primary hover:underline` (link); desc `body-sm line-clamp-2`; meta row clock-mins / `Flame` cal; `Separator`; actions: **View Recipe** `Link` + `buttonVariants()` `flex-1` + outline icon `Trash2` (`hover:text-destructive`) |
-| Card grid | `grid gap-6 md:grid-cols-2 lg:grid-cols-3` |
-| Empty state | `rounded-xl border border-dashed border-border bg-surface p-12 text-center` |
-| Detail back-link | `inline-flex items-center gap-2 text-body-base font-medium text-muted-foreground hover:text-foreground` + `ArrowLeft` |
-| Detail header card | `Card p-8 shadow-sm`; `h1` title + ghost icon `Trash2` (delete → toast + `router.push("/recipes")`); `body-lg` desc; `RecipeTags`; time row `Clock` + `{minutes} minutes` + optional `Prep:`/`Cook:` |
-| Detail body grid | `grid gap-6 lg:grid-cols-3` — Ingredients `lg:col-span-1`, Instructions `lg:col-span-2` (both `Card p-6 shadow-sm`) |
-| Servings stepper | outline icon `Button` (`Minus`/`Plus`, min 1) around `h4` count; `factor = servings / recipe.servings` scales amounts via `scaleAmount` (2-dp) |
-| Ingredient row | `label flex items-start gap-3` + shadcn `Checkbox` (`mt-0.5`); checked → `text-muted-foreground line-through` |
-| Instruction step | numbered `size-7 rounded-full bg-primary text-primary-foreground` badge + `body-base text-muted-foreground` (cf. `RecipeResult` `size-6`) |
-| Nutrition / Tips | reuse `RecipeResult` shapes — `NutritionBox` (`rounded-lg bg-muted p-3`, 5-col grid) + tips `Card bg-primary-subtle p-6` |
-
-**Pattern notes:** thin Server pages — `/recipes` renders client `RecipesView` (search + 2 selects + client-side delete over **mock** `SAVED_RECIPES`); `/recipes/[id]` is a **Server Component** that `await`s async `params`, looks up via `getSavedRecipe`, `notFound()`s, and renders client `RecipeDetailView`. The shared `RecipeTags` is the single source for cuisine/difficulty/diet chips (reuse it — don't re-derive tones). `Recipe` type extended with optional `dietTags`/`prepMinutes`/`cookMinutes` (additive — `RecipeResult` + generate flow unchanged). A **link styled as a button** uses `buttonVariants()`, never `Button` around `Link`. Delete is mock (list filter / nav away) until the `/recipes` API exists.
-
-### Meal Planner — weekly calendar (`features/meal-planner`)
-
-Files: `MealPlannerView` (client) · `RecipePickerDialog` · `lib/week.ts` · `constants.ts`
-Last updated: 2026-06-28
-
-| Property | Class / note |
-| -------- | ------------ |
-| Week-nav bar | `rounded-xl border border-border bg-surface p-4 shadow-sm`; range `h4` + count `body-sm`; prev/next outline icon `Button`s flanking a "This Week" `Button` (active → `default`, else `outline`) |
-| Calendar grid | `grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-7` — **day columns** (not a label-column table) so it stacks cleanly |
-| Day column | `rounded-xl border border-border bg-surface p-3 shadow-sm`; header weekday `body-base semibold` + date pill `size-7 rounded-full` (today `bg-primary text-primary-foreground`, else `bg-muted text-muted-foreground`) |
-| Slot label | `caption` + lucide icon (Breakfast `Coffee` · Lunch `Sun` · Dinner `Moon`), `text-muted-foreground` |
-| Filled slot | `group relative rounded-lg border border-primary/20 bg-primary/5 p-2.5`; title `body-sm` `line-clamp-2`; mins `caption`; absolute `X` remove (`hover:text-destructive`) |
-| Empty slot | dashed `border border-dashed border-border py-3` button, `+ Add`, `hover:border-primary/40 hover:text-primary` |
-| Picker dialog | shadcn `Dialog`; search `Input` (`pl-9`) + scrollable `max-h-80` list of recipe buttons (title + cuisine·difficulty + mins), `hover:border-primary/40 hover:bg-primary/5` |
-
-**Pattern notes:** thin Server page → client `MealPlannerView`. **Mock, in-memory** plan: `Record<\`${iso}-${slot}\`, Recipe>` keyed via `slotKey()`; week math in `lib/week.ts` (Monday-anchored, `weekOffset` state, `new Date()` only in the client). Recipes to assign come from `SAVED_RECIPES`. Assign/remove are local until the `/meal-planner` API (Phase 7). Slots mirror the backend `MealSlot` enum.
-
-### Shopping List (`features/shopping`) — design-matched (`shoppingList.png`)
-
-Files: `ShoppingView` (client) · `ShoppingItemRow` · `AddShoppingItemDialog` · `schemas/` + `types/` + `data/`
-Last updated: 2026-06-28
-
-| Property | Class / note |
-| -------- | ------------ |
-| Header | `display-lg` title + dynamic `body-lg text-muted-foreground` subtitle "**X of Y items checked**" (no progress bar — count only). Header lives in the **client** view because the count is reactive. |
-| Action toolbar | `flex flex-wrap gap-3`; **Add Item** primary `Button` (`Plus`, always); **Add to Pantry (N)** `Button className="bg-info text-info-fg hover:bg-info-hover"` (blue, **only when `checkedCount > 0`**, N = checked count — bulk-promotes checked); **Clear Checked** outline `Button` (`Trash2`, only when `checkedCount > 0`) |
-| Category card | `Card overflow-hidden shadow-sm`; header band `border-b border-border bg-muted/40 px-5 py-3` with `h5` name; rows wrapped in `divide-y divide-border` (no per-row borders) |
-| Item row | `label flex items-center gap-4 px-5 py-4`; `Checkbox` `size-5`; name `body-lg medium` (checked → `text-muted-foreground line-through`) + qty `body-sm`. **No per-row buttons** — actions are the global toolbar. |
-| Add dialog | shadcn `Dialog` + RHF + Zod (`schemas/shopping.schema.ts`); **Item Name** `Input`, then **Quantity** (number, `valueAsNumber`) + **Unit** `Select` side-by-side (`grid-cols-2`), then **Category** `Select` (`Controller`). Stored `quantity` = `` `${quantity} ${unit}` ``. Mirrors the Pantry `AddItemDialog`. Units come from the **shared** `@shared/constants/units` (`MEASUREMENT_UNITS`) — pantry + shopping reuse one source, default `"Pieces"`. |
-| Empty state | `rounded-xl border border-dashed border-border bg-surface p-12 text-center` + `ShoppingCart` icon |
-
-**Pattern notes:** thin Server page (`<ShoppingView/>` only) → client view owns header + state. **Mock** `SHOPPING_ITEMS` grouped by **distinct categories sorted alphabetically** (matches the mock's Dairy → Meat → Produce). Check-off is the only per-row interaction; **bulk** "Add to Pantry" (toast + removes checked, the Phase 8 `to-pantry` promotion) and "Clear Checked" operate on all checked items. Blue bulk button uses the `info` token (`bg-info`/`text-info-fg`/`hover:bg-info-hover`). All client-side until the `/shopping` API exists.
 
 ### Settings (`features/settings`) — design-matched (`settingspage1-3.png`)
 
@@ -345,8 +265,7 @@ Last updated: 2026-06-28
   **true** → red `Button variant="destructive"`; cancel is `outline`).
 - **Every delete confirms** before acting — call site pattern:
   `const ok = await confirm({ title, description, confirmLabel: "Delete" }); if (!ok) return` then the
-  optimistic mutation. Wired in: Pantry item, Recipe card (list), Recipe detail, Meal-plan slot remove,
-  Shopping "Clear Checked". (Shopping "Add to Pantry" is a move, not a delete — no confirm.)
+  optimistic mutation. Wire this in at every destructive action as the hospital features land.
 
 ## Loading skeletons (content-shaped)
 
@@ -361,10 +280,6 @@ geometry via `className`; the pulse/colour come from the component.
 
 | View | Skeleton shape (matches the real layout) |
 | ---- | ---------------------------------------- |
-| Shopping (`ShoppingView`) | **1** category `Card` → header bar + 4 rows of `size-5` checkbox + name (`h-4`) / qty (`h-3`) |
-| Pantry (`PantryView`) | **6** `Card p-5` in the 3-col grid → title/category lines + `size-4` ✕ + quantity row + expiry line |
-| Recipes (`RecipesView`) | **6** `Card` in the 3-col grid → `h-44` media well + title + 2 desc lines + tag pills + meta row + `h-px` separator + button row (`flex-1` + `size-8`) |
-| Recipe detail (`RecipeDetail`) | back-link + header `Card p-8` (title/desc/tags/time) + `lg:grid-cols-3`: ingredients `Card` (6 lines) + instructions `Card` (5 × `size-7` numbered step + 2 lines) |
 | Dashboard (`DashboardView`) | **3** stat `Card`s (`size-12` icon well + label/value) + **2** list `Card`s (header + 3 × `size-10` row) |
 | Settings prefs (`PreferencesSection`) | label + 6 pill skeletons, label + input, label + 8 pills, 2-up `h-12` toggle, `h-9 w-40` save button |
 
@@ -418,7 +333,7 @@ are token classes — never hex or raw Tailwind colours. This baseline will be e
 | ------------ | ------ |
 | Badge / status tag | `rounded-md` |
 | Card, input | `rounded-lg` |
-| Recipe / panel card, media | `rounded-xl` |
+| Card / panel, media | `rounded-xl` |
 | Large panel / dialog | `rounded-2xl` |
 | Pill nav, CTA, avatar, checkbox | `rounded-full` |
 

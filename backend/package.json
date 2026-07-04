@@ -1,5 +1,5 @@
 {
-  "name": "pantrychef-backend",
+  "name": "medinex-backend",
   "version": "0.1.0",
   "private": true,
   "description": "PantryChef backend — NestJS + Prisma + PostgreSQL",

@@ -29,8 +29,8 @@ export function AiPrescription() {
       />
       <div className="relative z-10 mx-auto max-w-6xl">
         <Tabs defaultValue="smart">
-          <div className="mb-14 flex flex-col items-start justify-between gap-8 lg:flex-row lg:items-end">
-            <div>
+          <div className="mb-14 flex flex-col items-center justify-between gap-8 lg:flex-row lg:items-end">
+            <div className="text-center lg:text-left">
               <Typography
                 as="span"
                 variant="body-sm"
@@ -58,22 +58,22 @@ export function AiPrescription() {
                   reimagined by AI
                 </span>
               </Typography>
-              <Typography variant="body-lg" className="max-w-xl leading-relaxed text-primary-fg/70">
+              <Typography variant="body-lg" className="mx-auto max-w-xl leading-relaxed text-primary-fg/70 lg:mx-0">
                 Eliminate manual writing fatigue. Let AI draft complete prescriptions in seconds, or
                 simply speak, and watch words become clinical records.
               </Typography>
             </div>
 
-            <TabsList className="group-data-horizontal/tabs:h-auto shrink-0 gap-2 rounded-2xl border border-surface/10 bg-surface/5 p-1.5">
+            <TabsList className="group-data-horizontal/tabs:h-auto w-full shrink-0 gap-2 rounded-2xl border border-surface/10 bg-surface/5 p-1.5 lg:w-fit">
               <TabsTrigger
                 value="smart"
-                className="h-auto gap-3.5 rounded-xl px-9 py-3.5 text-body-base font-semibold text-primary-fg/45 hover:text-primary-fg/75 data-active:bg-transparent data-active:bg-linear-to-br data-active:from-violet-600 data-active:to-violet-700 data-active:text-primary-fg data-active:shadow-lg data-active:shadow-violet-600/40"
+                className="h-auto flex-1 gap-2 rounded-xl px-2.5 py-3 text-body-sm font-semibold text-primary-fg/45 hover:text-primary-fg/75 data-active:bg-transparent data-active:bg-linear-to-br data-active:from-violet-600 data-active:to-violet-700 data-active:text-primary-fg data-active:shadow-lg data-active:shadow-violet-600/40 lg:flex-none lg:gap-3.5 lg:px-7 lg:py-3.5 lg:text-body-base"
               >
                 <Sparkles className="size-4" /> Smart Prescription
               </TabsTrigger>
               <TabsTrigger
                 value="voice"
-                className="h-auto gap-3.5 rounded-xl px-9 py-3.5 text-body-base font-semibold text-primary-fg/45 hover:text-primary-fg/75 data-active:bg-transparent data-active:bg-linear-to-br data-active:from-blue-500 data-active:to-blue-600 data-active:text-primary-fg data-active:shadow-lg data-active:shadow-blue-500/40"
+                className="h-auto flex-1 gap-2 rounded-xl px-2.5 py-3 text-body-sm font-semibold text-primary-fg/45 hover:text-primary-fg/75 data-active:bg-transparent data-active:bg-linear-to-br data-active:from-blue-500 data-active:to-blue-600 data-active:text-primary-fg data-active:shadow-lg data-active:shadow-blue-500/40 lg:flex-none lg:gap-3.5 lg:px-7 lg:py-3.5 lg:text-body-base"
               >
                 <Mic className="size-4" /> Voice Prescription
               </TabsTrigger>

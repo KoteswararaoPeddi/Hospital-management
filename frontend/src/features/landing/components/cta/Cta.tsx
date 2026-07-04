@@ -52,7 +52,7 @@ export function Cta() {
             Book Demo
           </Link>
           <Link href="/signup" className={cn(ctaTrial, "px-7 py-3")}>
-            free 14 days trial
+            Free 14 days trial
           </Link>
         </div>
       </div>

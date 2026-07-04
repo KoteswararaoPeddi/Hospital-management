@@ -52,7 +52,7 @@ for variants and the design tokens.
 
 - Reuse and extend primitives from `shared/components/ui` — don't pull raw Radix/Base UI into feature code.
 - Add new primitives via the shadcn workflow (`components.json`); style them with tokens, never hex.
-- Compose feature composites (`PantryRow`, `RecipeCard`, `MealSlot`, `ShoppingItemRow`) in the feature or `shared/components`.
+- Compose feature composites (`PatientRow`, `AppointmentCard`, `DepartmentCard`, `PrescriptionRow`) in the feature or `shared/components`.
 
 ## Tailwind CSS v4
 
@@ -63,12 +63,12 @@ for variants and the design tokens.
 
 ## React Hook Form + Zod
 
-Every form (login, signup, pantry item, preferences, generator filters). The Zod schema is
+Every form (login, signup, patient, appointment, prescription filters). The Zod schema is
 the single source of truth.
 
 ```typescript
-const form = useForm<PantryItemValues>({
-  resolver: zodResolver(pantryItemSchema),
+const form = useForm<PatientValues>({
+  resolver: zodResolver(patientSchema),
   defaultValues: DEFAULTS,
   mode: "onBlur",
 })
@@ -80,7 +80,7 @@ const form = useForm<PantryItemValues>({
 ## Zustand
 
 Cross-cutting client state only: `auth.store` (user/session) and any shared counters chrome
-needs (e.g. pantry low-stock count, shopping-list count for a navbar badge).
+needs (e.g. unread-alert count, pending-bill count for a navbar badge).
 
 - Select narrow slices: `useAuthStore((s) => s.user)`.
 - Auth checks here are **UX only** — the backend is the authorization source of truth.
@@ -149,15 +149,15 @@ const items = await this.prisma.appointment.findMany({
 ## class-validator + class-transformer
 
 - Every request body is a **DTO class** with validation decorators (`@IsEmail`, `@IsString`, `@IsInt`, `@Min`, `@IsEnum`, `@IsOptional`, `@IsDateString`, …).
-- `whitelist: true` strips unknown properties; `transform: true` coerces query params (e.g. the meal-plan `week`) to their typed form.
+- `whitelist: true` strips unknown properties; `transform: true` coerces query params (e.g. an appointment `date`) to their typed form.
 
 ```typescript
-export class CreatePantryItemDto {
+export class CreatePatientDto {
   @IsString() @MinLength(1) name: string
-  @IsNumber() @Min(0) quantity: number
-  @IsString() unit: string
-  @IsOptional() @IsDateString() expiryDate?: string
-  @IsOptional() @IsNumber() @Min(0) lowStockThreshold?: number
+  @IsInt() @Min(0) age: number
+  @IsEnum(Gender) gender: Gender
+  @IsOptional() @IsDateString() dateOfBirth?: string
+  @IsOptional() @IsString() department?: string
 }
 ```
 

@@ -11,7 +11,7 @@ import {
 import { SignupForm } from "@features/auth/components"
 
 export const metadata: Metadata = {
-  title: "Create account | PantryChef",
+  title: "Create account | MediNex+",
 }
 
 export default function SignupPage() {
@@ -19,7 +19,7 @@ export default function SignupPage() {
     <Card className="w-full max-w-sm shadow-md">
       <CardHeader className="text-center">
         <CardTitle className="text-h3 text-foreground">Create your account</CardTitle>
-        <CardDescription>Start cooking from what&apos;s in your pantry</CardDescription>
+        <CardDescription>Set up your hospital workspace in minutes</CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-6">
         <SignupForm />

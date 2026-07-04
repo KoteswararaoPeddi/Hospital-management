@@ -57,7 +57,7 @@ export function AiInfoPanel({ label, heading, body, benefits, icons, accent, ico
         })}
       </div>
 
-      <div className="flex flex-wrap gap-8">
+      <div className="flex flex-nowrap gap-x-3 gap-y-4 sm:flex-wrap sm:gap-8">
         {AI_STATS.map((s) => (
           <div key={s.label}>
             <Typography as="div" variant="h1" className={cn("font-black leading-none tracking-tight", accent)}>

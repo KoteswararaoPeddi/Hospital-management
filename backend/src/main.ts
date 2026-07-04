@@ -27,7 +27,7 @@ async function bootstrap(): Promise<void> {
 
   const port = config.get("port", { infer: true });
   await app.listen(port);
-  Logger.log(`PantryChef API listening on http://localhost:${port}/api`, "Bootstrap");
+  Logger.log(`MediNex+ API listening on http://localhost:${port}/api`, "Bootstrap");
 }
 
 void bootstrap();

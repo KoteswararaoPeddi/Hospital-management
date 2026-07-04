@@ -24,14 +24,14 @@ export function AiSmartMock() {
         <span className="size-2.5 rounded-full bg-red-500" />
         <span className="size-2.5 rounded-full bg-amber-500" />
         <span className="size-2.5 rounded-full bg-green-500" />
-        <Typography as="span" variant="body-sm" weight="semibold" className="ml-1 text-primary-fg/70">
+        <Typography as="span" variant="body-sm" weight="semibold" className="ml-1 min-w-0 truncate text-primary-fg/70">
           MediNex+ · Smart Prescription
         </Typography>
         <Typography
           as="span"
           variant="caption"
           weight="bold"
-          className="ml-auto flex items-center gap-1.5 rounded-full bg-success/15 px-2.5 py-1 text-success"
+          className="ml-auto flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full bg-success/15 px-2.5 py-1 text-success"
         >
           <span className="size-1.5 rounded-full bg-success" /> AI Active
         </Typography>
@@ -40,14 +40,14 @@ export function AiSmartMock() {
       <div className="p-5">
         {/* patient */}
         <div className="mb-4 flex items-center gap-3 rounded-2xl border border-surface/[0.06] bg-surface/[0.03] p-3">
-          <span className="flex size-10 items-center justify-center rounded-full bg-linear-to-br from-violet-600 to-violet-700 text-body-sm font-bold text-primary-fg">
+          <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-violet-600 to-violet-700 text-body-sm font-bold text-primary-fg">
             RK
           </span>
-          <div>
-            <Typography as="div" variant="body-base" weight="bold" className="text-primary-fg">
+          <div className="min-w-0">
+            <Typography as="div" variant="body-base" weight="bold" className="truncate text-primary-fg">
               Rahul Kumar
             </Typography>
-            <Typography as="div" variant="caption" className="text-primary-fg/40">
+            <Typography as="div" variant="caption" className="truncate text-primary-fg/40">
               Male, 34 yrs · OPD #2847
             </Typography>
           </div>
@@ -55,16 +55,16 @@ export function AiSmartMock() {
             as="span"
             variant="caption"
             weight="bold"
-            className="ml-auto rounded-full bg-violet-600/25 px-2.5 py-1 text-violet-300"
+            className="ml-auto shrink-0 whitespace-nowrap rounded-full bg-violet-600/25 px-2.5 py-1 text-violet-300"
           >
             AI Ready
           </Typography>
         </div>
 
         {/* steps */}
-        <div className="mb-4 flex items-center">
+        <div className="mb-4 flex items-center justify-between sm:justify-normal">
           {STEPS.map((s, i) => (
-            <div key={s.label} className="flex flex-1 items-center last:flex-none">
+            <div key={s.label} className="flex items-center last:flex-none sm:flex-1">
               <span className="flex items-center gap-1.5">
                 <span
                   className={cn(
@@ -80,7 +80,7 @@ export function AiSmartMock() {
                   {s.label}
                 </Typography>
               </span>
-              {i < STEPS.length - 1 && <span className="mx-2 h-px flex-1 bg-surface/10" />}
+              {i < STEPS.length - 1 && <span className="mx-2 hidden h-px flex-1 bg-surface/10 sm:block" />}
             </div>
           ))}
         </div>

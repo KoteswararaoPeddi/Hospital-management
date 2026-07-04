@@ -1,5 +1,6 @@
-// PantryChef domain model. See context/architecture.md.
-// Every per-user row is scoped to a User; deleting a user cascades.
+// MediNex+ domain model — multi-tenant hospital management. See context/architecture.md.
+// Every hospital is a tenant (`Hospital`); every data-bearing row is scoped to `hospitalId`
+// (+ the owning user where relevant). Deleting a hospital cascades to all its data.
 
 generator client {
   provider = "prisma-client-js"
@@ -11,153 +12,263 @@ datasource db {
 }
 
 // ---------------------------------------------------------------------------
-// Enums (shared by preferences, recipes, the generator, and the planner)
+// Enums
 // ---------------------------------------------------------------------------
 
-enum Diet {
-  NONE
-  VEGETARIAN
-  VEGAN
-  KETO
-  PALEO
-  GLUTEN_FREE
+enum Plan {
+  STARTER
+  PRO
+  ENTERPRISE
 }
 
-enum Cuisine {
-  ANY
-  ITALIAN
-  MEXICAN
-  INDIAN
-  CHINESE
-  THAI
-  JAPANESE
-  MEDITERRANEAN
-  AMERICAN
-  FRENCH
-  GREEK
-  SPANISH
-  KOREAN
+enum Role {
+  SUPER_ADMIN
+  HOSPITAL_ADMIN
+  DOCTOR
+  STAFF
+  PATIENT
 }
 
-enum Difficulty {
-  EASY
-  MEDIUM
-  HARD
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
 }
 
-enum MealSlot {
-  BREAKFAST
-  LUNCH
-  DINNER
+enum AppointmentStatus {
+  SCHEDULED
+  CONFIRMED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
 }
 
-enum RecipeSource {
+enum PrescriptionSource {
   AI
   MANUAL
 }
 
+// An AI-drafted prescription is created as DRAFT; only a doctor's review sets it APPROVED.
+enum PrescriptionStatus {
+  DRAFT
+  APPROVED
+}
+
+enum LabStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+}
+
+enum InvoiceStatus {
+  PENDING
+  PAID
+  CANCELLED
+}
+
 // ---------------------------------------------------------------------------
-// Models
+// Tenant
 // ---------------------------------------------------------------------------
 
-model User {
-  id                String   @id @default(cuid())
-  email             String   @unique
-  passwordHash      String
-  hashedRefreshToken String? // bcrypt hash of the current refresh token; null = logged out
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-
-  preference     Preference?
-  pantryItems    PantryItem[]
-  recipes        Recipe[]
-  mealPlanEntries MealPlanEntry[]
-  shoppingItems  ShoppingItem[]
-
-  @@map("users")
-}
-
-model Preference {
-  id             String  @id @default(cuid())
-  userId         String  @unique
-  defaultDiet    Diet    @default(NONE)
-  defaultCuisine Cuisine @default(ANY)
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@map("preferences")
-}
-
-model PantryItem {
-  id                String    @id @default(cuid())
-  userId            String
-  name              String
-  quantity          Float     @default(0)
-  unit              String    @default("unit")
-  expiryDate        DateTime? @db.Date
-  lowStockThreshold Float?
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-  @@map("pantry_items")
-}
-
-model Recipe {
-  id          String       @id @default(cuid())
-  userId      String
-  title       String
-  cuisine     Cuisine      @default(ANY)
-  diet        Diet         @default(NONE)
-  difficulty  Difficulty   @default(MEDIUM)
-  servings    Int          @default(2)
-  ingredients Json // [{ name, quantity, unit, inPantry }]
-  steps       Json // string[]
-  nutrition   Json // { calories, protein, carbs, fat, ... }
-  tips        Json // string[]
-  source      RecipeSource @default(AI)
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-
-  user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  mealPlanEntries MealPlanEntry[]
-
-  @@index([userId])
-  @@index([userId, cuisine])
-  @@index([userId, difficulty])
-  @@map("recipes")
-}
-
-model MealPlanEntry {
+model Hospital {
   id        String   @id @default(cuid())
-  userId    String
-  date      DateTime @db.Date
-  slot      MealSlot
-  recipeId  String
-  createdAt DateTime @default(now())
-
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  recipe Recipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, date, slot])
-  @@index([userId, date])
-  @@map("meal_plan_entries")
-}
-
-model ShoppingItem {
-  id        String   @id @default(cuid())
-  userId    String
   name      String
-  quantity  Float    @default(1)
-  unit      String   @default("unit")
-  checked   Boolean  @default(false)
+  slug      String   @unique
+  plan      Plan     @default(STARTER)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  users         User[]
+  departments   Department[]
+  doctors       Doctor[]
+  patients      Patient[]
+  appointments  Appointment[]
+  prescriptions Prescription[]
+  pharmacyItems PharmacyItem[]
+  labOrders     LabOrder[]
+  invoices      Invoice[]
 
-  @@index([userId])
-  @@map("shopping_items")
+  @@map("hospitals")
+}
+
+// ---------------------------------------------------------------------------
+// Identity
+// ---------------------------------------------------------------------------
+
+model User {
+  id                 String   @id @default(cuid())
+  hospitalId         String
+  email              String   @unique
+  passwordHash       String
+  hashedRefreshToken String? // bcrypt hash of the current refresh token; null = logged out
+  role               Role     @default(STAFF)
+  name               String
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  hospital Hospital @relation(fields: [hospitalId], references: [id], onDelete: Cascade)
+  doctor   Doctor?
+
+  @@index([hospitalId])
+  @@map("users")
+}
+
+// ---------------------------------------------------------------------------
+// Clinical
+// ---------------------------------------------------------------------------
+
+model Department {
+  id         String @id @default(cuid())
+  hospitalId String
+  name       String
+
+  hospital Hospital @relation(fields: [hospitalId], references: [id], onDelete: Cascade)
+  doctors  Doctor[]
+
+  @@index([hospitalId])
+  @@map("departments")
+}
+
+model Doctor {
+  id           String   @id @default(cuid())
+  hospitalId   String
+  userId       String?  @unique
+  departmentId String?
+  name         String
+  specialty    String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  hospital      Hospital       @relation(fields: [hospitalId], references: [id], onDelete: Cascade)
+  user          User?          @relation(fields: [userId], references: [id], onDelete: SetNull)
+  department    Department?    @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+  appointments  Appointment[]
+  prescriptions Prescription[]
+
+  @@index([hospitalId])
+  @@index([hospitalId, departmentId])
+  @@map("doctors")
+}
+
+model Patient {
+  id         String    @id @default(cuid())
+  hospitalId String
+  name       String
+  gender     Gender?
+  dob        DateTime? @db.Date
+  contact    String?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  hospital      Hospital       @relation(fields: [hospitalId], references: [id], onDelete: Cascade)
+  appointments  Appointment[]
+  prescriptions Prescription[]
+  labOrders     LabOrder[]
+  invoices      Invoice[]
+
+  @@index([hospitalId])
+  @@map("patients")
+}
+
+model Appointment {
+  id          String            @id @default(cuid())
+  hospitalId  String
+  patientId   String
+  doctorId    String
+  scheduledAt DateTime
+  status      AppointmentStatus @default(SCHEDULED)
+  reason      String?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  hospital     Hospital      @relation(fields: [hospitalId], references: [id], onDelete: Cascade)
+  patient      Patient       @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  doctor       Doctor        @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  prescription Prescription?
+
+  @@index([hospitalId])
+  @@index([hospitalId, scheduledAt])
+  @@index([doctorId])
+  @@index([patientId])
+  @@map("appointments")
+}
+
+model Prescription {
+  id            String             @id @default(cuid())
+  hospitalId    String
+  appointmentId String?            @unique
+  doctorId      String
+  patientId     String
+  diagnosis     String?
+  items         Json // [{ name, dosage, frequency, duration }]
+  source        PrescriptionSource @default(MANUAL)
+  status        PrescriptionStatus @default(DRAFT)
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+
+  hospital    Hospital     @relation(fields: [hospitalId], references: [id], onDelete: Cascade)
+  appointment Appointment? @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
+  doctor      Doctor       @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  patient     Patient      @relation(fields: [patientId], references: [id], onDelete: Cascade)
+
+  @@index([hospitalId])
+  @@index([patientId])
+  @@map("prescriptions")
+}
+
+// ---------------------------------------------------------------------------
+// Operations
+// ---------------------------------------------------------------------------
+
+model PharmacyItem {
+  id         String    @id @default(cuid())
+  hospitalId String
+  name       String
+  stock      Int       @default(0)
+  batch      String?
+  expiry     DateTime? @db.Date
+  price      Decimal   @default(0) @db.Decimal(10, 2)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  hospital Hospital @relation(fields: [hospitalId], references: [id], onDelete: Cascade)
+
+  @@index([hospitalId])
+  @@map("pharmacy_items")
+}
+
+model LabOrder {
+  id         String    @id @default(cuid())
+  hospitalId String
+  patientId  String
+  test       String
+  status     LabStatus @default(PENDING)
+  resultUrl  String?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  hospital Hospital @relation(fields: [hospitalId], references: [id], onDelete: Cascade)
+  patient  Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+
+  @@index([hospitalId])
+  @@index([patientId])
+  @@map("lab_orders")
+}
+
+model Invoice {
+  id         String        @id @default(cuid())
+  hospitalId String
+  patientId  String
+  lineItems  Json // [{ description, amount }]
+  total      Decimal       @default(0) @db.Decimal(10, 2)
+  status     InvoiceStatus @default(PENDING)
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+
+  hospital Hospital @relation(fields: [hospitalId], references: [id], onDelete: Cascade)
+  patient  Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+
+  @@index([hospitalId])
+  @@index([patientId])
+  @@map("invoices")
 }

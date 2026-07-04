@@ -25,7 +25,7 @@ export const PRICING_PLANS: PricingPlan[] = [
       badge: "Clinic Profile Page + Booking",
       detail: "A ready-to-share clinic profile page with online appointment booking.",
     },
-    cta: { label: "free 14 days trial", variant: "trial" },
+    cta: { label: "Free 14 days trial", variant: "trial" },
   },
   {
     id: "pro",
@@ -53,7 +53,7 @@ export const PRICING_PLANS: PricingPlan[] = [
       badge: "Multi-Page SEO Website + Booking Engine",
       detail: "A multi-page SEO-optimized website with an integrated booking engine.",
     },
-    cta: { label: "free 14 days trial", variant: "trial" },
+    cta: { label: "Free 14 days trial", variant: "trial" },
   },
   {
     id: "enterprise",

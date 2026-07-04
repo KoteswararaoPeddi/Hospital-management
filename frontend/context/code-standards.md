@@ -80,8 +80,8 @@ Follow these every session — they prevent pattern drift. See architecture.md f
 
 ## Forms & validation
 
-- Every form uses **React Hook Form + Zod** (both installed): login, signup, pantry item,
-  preferences, generator filters. The Zod schema is the **single source of truth**, lives in
+- Every form uses **React Hook Form + Zod** (both installed): login, signup, patient,
+  appointment, prescription filters. The Zod schema is the **single source of truth**, lives in
   the feature's `schemas/`, and types are derived with `z.infer`.
 - Validate before calling a service. Build inputs from the shared form-field components
   (`Field`/`Input`/`Textarea`/`Label`), not raw inputs.
@@ -93,7 +93,7 @@ Follow these every session — they prevent pattern drift. See architecture.md f
 ## Client State (Zustand)
 
 - Cross-cutting client state only — e.g. `auth.store` (user/session) and any shared
-  pantry/shopping counters used by chrome. Local UI state stays in the component.
+  appointment/notification counters used by chrome. Local UI state stays in the component.
 - Select narrow slices: `useAuthStore((s) => s.user)`.
 - Auth checks in the client are **UX only** — the backend is the authorization source of
   truth (every route scoped to `userId`).
@@ -117,7 +117,7 @@ The defaults that prevent most performance problems before they start. Make them
   Components ship **zero JS**. (See architecture.md → Rendering & Data Flow.)
 - **Keep `"use client"` boundaries small** — push them as low as possible; extract the
   interactive leaf (the button), don't make the whole page client.
-  `Page(server) → PantryTable(server) → AddItemButton(client)`.
+  `Page(server) → PatientTable(server) → AddPatientButton(client)`.
 - **Small, single-responsibility, reusable components** — no 800-line `Dashboard.tsx`; split
   into `Header`, `Stats`, `Chart`, … one job, one reason to change. Pages/layouts stay thin.
 - **Business logic out of JSX** — extract a 100-line `onClick` into a handler/hook/service.
@@ -259,8 +259,8 @@ full tree):
 - `src/common/` — cross-cutting, domain-agnostic code (decorators, filters, interceptors,
   guards, pipes, shared DTOs). **Imports nothing from `modules/`.**
 - `src/prisma/` — the global `PrismaService` / `PrismaModule`.
-- `src/modules/<domain>/` — one folder per domain (`auth`, `users`, `pantry`, `recipes`,
-  `ai`, `meal-planner`, `shopping`).
+- `src/modules/<domain>/` — one folder per domain (`auth`, `users`, `patients`, `appointments`,
+  `ai`, `pharmacy`, `billing`).
 
 **Module boundary rule:** `common/` and `prisma/` never import from `modules/`; a module
 never imports another module's internals — only its **exported service** through the Nest
@@ -277,7 +277,7 @@ Every domain folder has the same shape: `*.module.ts`, `*.controller.ts`, `*.ser
   query to it, and throw Nest exceptions (`NotFoundException`, `ForbiddenException`, …) — never
   return a raw DB error.
 - **DTOs are the input contract** — every request body is a class with `class-validator`
-  decorators (`@IsString`, `@IsEnum(Diet)`, …). `ValidationPipe({ whitelist: true, transform:
+  decorators (`@IsString`, `@IsEnum(AppointmentStatus)`, …). `ValidationPipe({ whitelist: true, transform:
   true })` strips undeclared properties. `update-*.dto.ts` uses `PartialType(CreateDto)`.
 - **Entities are the output contract** — shape responses with class-transformer
   (`@Exclude()`/`@Expose()`) so `passwordHash` can never serialize out.
@@ -289,7 +289,7 @@ Every domain folder has the same shape: `*.module.ts`, `*.controller.ts`, `*.ser
 - The `userId` comes from the verified JWT via the `@CurrentUser()` decorator — **never** from
   a client-supplied id, body, or param. Every per-user query is scoped to it.
 - helmet (security headers) and `@nestjs/throttler` (rate limiting, especially on `/auth` and
-  the paid `/recipes/generate`) are always on. `cookie-parser` enabled; CORS with
+  the paid `/prescriptions/generate`) are always on. `cookie-parser` enabled; CORS with
   `credentials: true`.
 
 ### Config & data access
@@ -308,7 +308,7 @@ Every domain folder has the same shape: `*.module.ts`, `*.controller.ts`, `*.ser
   successes in `{ success: true, message, data }`.
 - Structured logging via **nestjs-pino** + a `LoggingInterceptor` (method, url, status,
   latency) — never `console.log`. `app.enableShutdownHooks()` for a clean Prisma disconnect.
-- AI runs server-side only (Gemini), isolated in the `ai/` module; wrap AI calls in try/catch
+- AI runs server-side only (provider TBD, see library-docs.md), isolated in the `ai/` module; wrap AI calls in try/catch
   with a friendly fallback — an AI outage must never break the rest of the API.
 
 ### Testing
@@ -348,8 +348,8 @@ Every domain folder has the same shape: `*.module.ts`, `*.controller.ts`, `*.ser
    `src/shared`. Promote on the *second* use.
 
 - **Components** are composable and **props-driven** — no business logic baked in. Build on
-  `shared/components/ui` primitives; compose feature composites (`PantryRow`, `RecipeCard`,
-  `MealSlot`) from them.
+  `shared/components/ui` primitives; compose feature composites (`PatientRow`, `AppointmentCard`,
+  `DepartmentCard`) from them.
 - After building or promoting a shared component, add a row to **ui-registry.md**.
 
 ---
@@ -361,10 +361,10 @@ Three buckets hold values outside components:
 - **Constants** — the authoritative *value* of something (route paths, slot names, enum
   labels). Pure data; no icons, classes, or JSX. Lives in `constants/`.
 - **Config** — a structured object that drives how something *renders/behaves* (navigation
-  links, diet/cuisine option lists with icons+labels, difficulty styles). Composes constants
+  links, department/role option lists with icons+labels, status styles). Composes constants
   plus presentation. Lives in `config/`.
 - **Data** — static **content** the UI renders that is *not* fetched from the API (e.g. the
-  fixed list of supported cuisines/diets for the filter UI). Most app content comes from the
+  fixed list of departments/roles for the filter UI). Most app content comes from the
   **backend via services**, not from `data/` files. Lives in `data/`.
 
 Config may import constants; constants must never import config. File naming: kebab-case —
@@ -374,10 +374,10 @@ constants `*.ts`, config `*.config.ts`, data `*.data.ts`.
 
 ## Naming
 
-- **Folders:** kebab-case — `meal-planner`, `recipe-card`.
-- **Component files:** PascalCase — `RecipeCard.tsx`, `PantryRow.tsx`. One component per file.
+- **Folders:** kebab-case — `appointment-list`, `patient-card`.
+- **Component files:** PascalCase — `PatientCard.tsx`, `AppointmentRow.tsx`. One component per file.
 - **Hooks:** `useX.ts`. **Services:** `*.service.ts`. **Schemas:** `*.schema.ts`.
-- **Constants/config/data:** kebab-case (`navigation.config.ts`, `cuisines.data.ts`).
+- **Constants/config/data:** kebab-case (`navigation.config.ts`, `departments.data.ts`).
 
 ---
 
@@ -392,13 +392,13 @@ import { Button } from "@components/ui/button"
 
 // 2. Internal imports (shared, then feature)
 import { cn } from "@lib/utils"
-import { recipeService } from "@features/recipes/api/recipe.service"
+import { patientService } from "@features/patients/api/patient.service"
 
 // 3. Types
 type Props = { id: string }
 
 // 4. Component
-export function RecipeView({ id }: Props) {
+export function PatientView({ id }: Props) {
   // state · derived · handlers · JSX
 }
 ```
@@ -416,7 +416,7 @@ export function RecipeView({ id }: Props) {
 ## Error Handling
 
 - Never use empty catch blocks.
-- Console errors carry a context prefix: `[recipe.service]`, `[useMealPlan]`, `[AiService]`.
+- Console errors carry a context prefix: `[patient.service]`, `[useAppointments]`, `[AiService]`.
 - User-facing errors are human-readable — surface form validation/submit errors inline; show
   a friendly fallback (toast/banner) when the API or AI is unavailable.
 
@@ -440,7 +440,7 @@ export function RecipeView({ id }: Props) {
 import { Button } from "@components/ui/button"        // ./src/shared/components/ui
 import { cn } from "@lib/utils"                         // ./src/shared/lib
 import axiosInstance from "@lib/axios.config"           // shared axios
-import { recipeService } from "@features/recipes/api/recipe.service"
+import { patientService } from "@features/patients/api/patient.service"
 // Never: import { Button } from "../../../shared/components/ui/button"
 ```
 

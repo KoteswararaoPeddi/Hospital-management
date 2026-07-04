@@ -1,6 +1,7 @@
 import { AiPrescription } from "./ai-prescription"
 import { Cta } from "./cta"
 import { Faq } from "./faq"
+import { Footer } from "./footer"
 import { Hero } from "./hero"
 import { HowItWorks } from "./how-it-works"
 import { Navbar } from "./navbar"
@@ -15,7 +16,7 @@ import { WhyChoose } from "./why-choose"
  */
 export function LandingPage() {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen overflow-x-clip bg-background">
       <Navbar />
       <main>
         <Hero />
@@ -27,8 +28,8 @@ export function LandingPage() {
         <Pricing />
         <Faq />
         <Cta />
-        {/* Following sections added after review. */}
       </main>
+      <Footer />
     </div>
   )
 }

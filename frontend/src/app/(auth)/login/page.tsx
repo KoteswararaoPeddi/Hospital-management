@@ -11,7 +11,7 @@ import {
 import { LoginForm } from "@features/auth/components"
 
 export const metadata: Metadata = {
-  title: "Sign in | PantryChef",
+  title: "Sign in | MediNex+",
 }
 
 export default function LoginPage() {
@@ -19,7 +19,7 @@ export default function LoginPage() {
     <Card className="w-full max-w-sm shadow-md">
       <CardHeader className="text-center">
         <CardTitle className="text-h3 text-foreground">Welcome back</CardTitle>
-        <CardDescription>Sign in to your PantryChef account</CardDescription>
+        <CardDescription>Sign in to your MediNex+ account</CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-6">
         <LoginForm />
